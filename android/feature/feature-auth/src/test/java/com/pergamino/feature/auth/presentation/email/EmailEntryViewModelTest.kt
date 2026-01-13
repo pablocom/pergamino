@@ -16,6 +16,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -23,11 +24,6 @@ import org.junit.Before
 import org.junit.Test
 import java.time.Instant
 
-/**
- * Unit tests for [EmailEntryViewModel].
- *
- * Demonstrates testing ViewModels with coroutines and flow collection.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class EmailEntryViewModelTest {
 
@@ -92,7 +88,7 @@ class EmailEntryViewModelTest {
     }
 
     @Test
-    fun `onEmailChanged clears previous submission errors`() {
+    fun `onEmailChanged clears previous submission errors`() = runTest {
         // Given - simulate a submission error
         val error = AuthError.NetworkError()
         coEvery { mockRequestEmailVerificationUseCase(any()) } returns Result.failure(error)
@@ -172,6 +168,7 @@ class EmailEntryViewModelTest {
 
         // When
         viewModel.onContinueClicked()
+        runCurrent() // Execute the coroutine up to the first suspension point
 
         // Then - should be loading immediately
         assertThat(viewModel.uiState.value.isLoading).isTrue()
@@ -224,7 +221,7 @@ class EmailEntryViewModelTest {
     }
 
     @Test
-    fun `onErrorDismissed clears error from state`() {
+    fun `onErrorDismissed clears error from state`() = runTest {
         // Given - set an error
         val error = AuthError.NetworkError()
         coEvery { mockRequestEmailVerificationUseCase(any()) } returns Result.failure(error)

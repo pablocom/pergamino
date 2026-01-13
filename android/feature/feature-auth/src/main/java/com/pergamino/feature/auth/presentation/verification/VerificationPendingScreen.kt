@@ -33,9 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pergamino.feature.auth.domain.model.AuthError
 
-/**
- * Stateful Verification Pending screen.
- */
 @Composable
 fun VerificationPendingScreen(
     viewModel: VerificationPendingViewModel = hiltViewModel(),
@@ -45,7 +42,6 @@ fun VerificationPendingScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Handle one-time events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -69,9 +65,6 @@ fun VerificationPendingScreen(
     )
 }
 
-/**
- * Stateless Verification Pending content.
- */
 @Composable
 fun VerificationPendingContent(
     uiState: VerificationPendingUiState,
@@ -92,7 +85,6 @@ fun VerificationPendingContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Email icon
             Icon(
                 imageVector = Icons.Outlined.Email,
                 contentDescription = null,
@@ -102,7 +94,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Title
             Text(
                 text = "Check your email",
                 style = MaterialTheme.typography.headlineMedium,
@@ -111,7 +102,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Description
             Text(
                 text = "We've sent a verification link to",
                 style = MaterialTheme.typography.bodyLarge,
@@ -121,7 +111,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Email address
             Text(
                 text = uiState.email,
                 style = MaterialTheme.typography.bodyLarge,
@@ -132,7 +121,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Instructions
             Text(
                 text = "Click the link in the email to verify your account. If you don't see it, check your spam folder.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -142,7 +130,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Resend button
             Button(
                 onClick = onResendClicked,
                 enabled = uiState.canResend,
@@ -172,7 +159,6 @@ fun VerificationPendingContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Change email button
             TextButton(
                 onClick = onChangeEmailClicked,
                 modifier = Modifier.testTag("change_email_button")
@@ -186,9 +172,6 @@ fun VerificationPendingContent(
     }
 }
 
-/**
- * Converts [AuthError] to a user-friendly message.
- */
 private fun AuthError.toUserMessage(): String = when (this) {
     is AuthError.InvalidEmail -> "Please enter a valid email address"
     is AuthError.InvalidToken -> "Invalid verification link"

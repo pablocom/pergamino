@@ -35,14 +35,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pergamino.feature.auth.domain.model.AuthError
 import com.pergamino.feature.auth.domain.model.EmailValidationError
 
-/**
- * Stateful Email Entry screen that connects to the ViewModel.
- *
- * This composable:
- * - Collects state from the ViewModel
- * - Handles one-time events (navigation, snackbars)
- * - Delegates rendering to the stateless [EmailEntryContent]
- */
 @Composable
 fun EmailEntryScreen(
     viewModel: EmailEntryViewModel = hiltViewModel(),
@@ -51,7 +43,6 @@ fun EmailEntryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Handle one-time events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -69,22 +60,16 @@ fun EmailEntryScreen(
 
     EmailEntryContent(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
+        snackBarHostState = snackbarHostState,
         onEmailChanged = viewModel::onEmailChanged,
         onContinueClicked = viewModel::onContinueClicked
     )
 }
 
-/**
- * Stateless Email Entry content.
- *
- * This composable receives all state as parameters and emits events via callbacks.
- * This makes it easy to test and preview.
- */
 @Composable
 fun EmailEntryContent(
     uiState: EmailEntryUiState,
-    snackbarHostState: SnackbarHostState,
+    snackBarHostState: SnackbarHostState,
     onEmailChanged: (String) -> Unit,
     onContinueClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -92,7 +77,7 @@ fun EmailEntryContent(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         modifier = modifier
     ) { paddingValues ->
         Column(
@@ -105,7 +90,6 @@ fun EmailEntryContent(
         ) {
             Spacer(modifier = Modifier.height(80.dp))
 
-            // Title
             Text(
                 text = "Enter your email",
                 style = MaterialTheme.typography.headlineMedium,
@@ -114,7 +98,6 @@ fun EmailEntryContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Subtitle
             Text(
                 text = "We'll send you a verification link to confirm your email address",
                 style = MaterialTheme.typography.bodyMedium,
@@ -124,7 +107,6 @@ fun EmailEntryContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Email input field
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = onEmailChanged,
@@ -160,7 +142,6 @@ fun EmailEntryContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Continue button
             Button(
                 onClick = {
                     keyboardController?.hide()
@@ -193,17 +174,11 @@ fun EmailEntryContent(
     }
 }
 
-/**
- * Converts [EmailValidationError] to a user-friendly message.
- */
 private fun EmailValidationError.toUserMessage(): String = when (this) {
     EmailValidationError.Empty -> "Please enter your email address"
     EmailValidationError.InvalidFormat -> "Please enter a valid email address"
 }
 
-/**
- * Converts [AuthError] to a user-friendly message.
- */
 private fun AuthError.toUserMessage(): String = when (this) {
     is AuthError.InvalidEmail -> "Please enter a valid email address"
     is AuthError.InvalidToken -> "Invalid verification link"

@@ -18,33 +18,15 @@ import java.time.Instant
  */
 sealed interface AuthState {
 
-    /**
-     * Initial state - user has not authenticated.
-     */
     data object Unauthenticated : AuthState
 
-    /**
-     * User has submitted their email and is waiting for verification.
-     *
-     * @property email The email address awaiting verification
-     * @property expiresAt When the verification link expires
-     */
     data class VerificationPending(
         val email: Email,
         val expiresAt: Instant
     ) : AuthState {
-        /**
-         * Checks if the verification has expired.
-         */
         fun isExpired(): Boolean = Instant.now().isAfter(expiresAt)
     }
 
-    /**
-     * User is fully authenticated and can use the app.
-     *
-     * @property user The authenticated user's information
-     * @property accessToken The access token for API calls
-     */
     data class Authenticated(
         val user: User,
         val accessToken: String

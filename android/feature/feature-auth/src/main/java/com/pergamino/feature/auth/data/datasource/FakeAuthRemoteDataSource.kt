@@ -9,29 +9,17 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Fake implementation of [AuthRemoteDataSource] for development and testing.
- *
- * This implementation simulates network behavior with artificial delays and
- * logs verification tokens for manual testing without a real backend.
- *
- * Verification tokens are logged to Logcat with tag "FakeAuthRemoteDataSource"
- * to allow testing the deep link flow.
- */
 @Singleton
 class FakeAuthRemoteDataSource @Inject constructor() : AuthRemoteDataSource {
 
     private val pendingVerifications = mutableMapOf<String, String>()
 
     override suspend fun requestVerification(email: String): Result<VerificationResponse, AuthError> {
-        // Simulate network delay
         delay(NETWORK_DELAY_MS)
 
-        // Generate a unique verification token
         val token = UUID.randomUUID().toString()
         pendingVerifications[email] = token
 
-        // Log the verification link for testing
         val deepLink = "pergamino://verify?token=$token"
         Log.d(TAG, "=".repeat(60))
         Log.d(TAG, "Verification email sent to: $email")
@@ -48,10 +36,8 @@ class FakeAuthRemoteDataSource @Inject constructor() : AuthRemoteDataSource {
     }
 
     override suspend fun verifyToken(token: String): Result<TokenVerificationResponse, AuthError> {
-        // Simulate network delay
         delay(NETWORK_DELAY_MS / 2)
 
-        // Find the email associated with this token
         val email = pendingVerifications.entries.find { it.value == token }?.key
 
         if (email == null) {
@@ -59,7 +45,6 @@ class FakeAuthRemoteDataSource @Inject constructor() : AuthRemoteDataSource {
             return Result.failure(AuthError.TokenNotFound)
         }
 
-        // Remove the used token
         pendingVerifications.remove(email)
 
         Log.d(TAG, "Token verified successfully for: $email")

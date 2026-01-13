@@ -15,15 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ViewModel for the Email Entry screen.
- *
- * Following MVVM pattern with Clean Architecture:
- * - Holds and manages UI state
- * - Handles user interactions
- * - Delegates business logic to use cases
- * - Emits one-time events for navigation/side effects
- */
 @HiltViewModel
 class EmailEntryViewModel @Inject constructor(
     private val requestEmailVerificationUseCase: RequestEmailVerificationUseCase
@@ -35,44 +26,25 @@ class EmailEntryViewModel @Inject constructor(
     private val _events = Channel<EmailEntryEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    /**
-     * Called when the user changes the email input.
-     *
-     * Validates the email in real-time and updates the UI state.
-     */
     fun onEmailChanged(email: String) {
-        // Validate the email as the user types
-        val validationError = if (email.isBlank()) {
-            null // Don't show error for empty field while typing
-        } else {
-            when (val result = Email.create(email)) {
-                is com.pergamino.core.common.Result.Success -> null
-                is com.pergamino.core.common.Result.Failure -> result.error
-            }
-        }
+        val validationError = validateEmailRealtime(email)
 
         _uiState.update { state ->
             state.copy(
                 email = email,
                 emailValidationError = validationError,
-                error = null // Clear any previous submission errors
+                error = null
             )
         }
     }
 
-    /**
-     * Called when the user taps the continue button.
-     *
-     * Initiates the email verification request.
-     */
     fun onContinueClicked() {
         val currentEmail = _uiState.value.email
 
-        // Final validation before submission
-        val validationResult = Email.create(currentEmail)
-        if (validationResult is com.pergamino.core.common.Result.Failure) {
+        val validationError = validateEmailForSubmission(currentEmail)
+        if (validationError != null) {
             _uiState.update { state ->
-                state.copy(emailValidationError = validationResult.error)
+                state.copy(emailValidationError = validationError)
             }
             return
         }
@@ -97,10 +69,24 @@ class EmailEntryViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Called when the user dismisses an error.
-     */
     fun onErrorDismissed() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    private fun validateEmailRealtime(email: String): EmailValidationError? {
+        if (email.isBlank()) {
+            return null
+        }
+        return when (val result = Email.create(email)) {
+            is com.pergamino.core.common.Result.Success -> null
+            is com.pergamino.core.common.Result.Failure -> result.error
+        }
+    }
+
+    private fun validateEmailForSubmission(email: String): EmailValidationError? {
+        return when (val result = Email.create(email)) {
+            is com.pergamino.core.common.Result.Success -> null
+            is com.pergamino.core.common.Result.Failure -> result.error
+        }
     }
 }

@@ -31,11 +31,6 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-/**
- * Authentication navigation routes.
- *
- * Using a sealed class provides type-safe navigation with compile-time checking.
- */
 sealed class AuthRoute(val route: String) {
     data object EmailEntry : AuthRoute("auth/email")
 
@@ -49,14 +44,6 @@ sealed class AuthRoute(val route: String) {
     data object AuthSuccess : AuthRoute("auth/success")
 }
 
-/**
- * Main navigation host for the authentication flow.
- *
- * Following Jetpack Compose navigation best practices:
- * - Uses sealed class for type-safe routes
- * - Clears back stack appropriately on auth completion
- * - Handles deep links for verification tokens
- */
 @Composable
 fun AuthNavHost(
     navController: NavHostController = rememberNavController(),
@@ -66,19 +53,16 @@ fun AuthNavHost(
         navController = navController,
         startDestination = AuthRoute.EmailEntry.route
     ) {
-        // Email Entry Screen
         composable(route = AuthRoute.EmailEntry.route) {
             EmailEntryScreen(
                 onNavigateToVerificationPending = { email ->
                     navController.navigate(AuthRoute.VerificationPending.createRoute(email)) {
-                        // Don't add to back stack multiple times if user re-submits
                         launchSingleTop = true
                     }
                 }
             )
         }
 
-        // Verification Pending Screen
         composable(
             route = AuthRoute.VerificationPending.route,
             arguments = listOf(
@@ -89,7 +73,6 @@ fun AuthNavHost(
         ) {
             VerificationPendingScreen(
                 onNavigateToMain = {
-                    // Clear the entire auth back stack when authenticated
                     navController.navigate(AuthRoute.AuthSuccess.route) {
                         popUpTo(AuthRoute.EmailEntry.route) {
                             inclusive = true
@@ -102,7 +85,6 @@ fun AuthNavHost(
             )
         }
 
-        // Auth Success Screen (placeholder for main app entry)
         composable(route = AuthRoute.AuthSuccess.route) {
             AuthSuccessScreen(
                 onContinue = onAuthenticationComplete
@@ -111,11 +93,6 @@ fun AuthNavHost(
     }
 }
 
-/**
- * Simple success screen shown after authentication.
- *
- * In a real app, this would navigate to the main chat screen.
- */
 @Composable
 private fun AuthSuccessScreen(
     onContinue: () -> Unit

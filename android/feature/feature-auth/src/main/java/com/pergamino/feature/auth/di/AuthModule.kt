@@ -12,12 +12,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Hilt module providing authentication dependencies.
- *
- * This module binds interfaces to their implementations, allowing for
- * easy swapping of implementations (e.g., fake vs real remote data source).
- */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AuthModule {
@@ -30,14 +24,6 @@ abstract class AuthModule {
     @Singleton
     abstract fun bindAuthLocalDataSource(impl: AuthLocalDataSourceImpl): AuthLocalDataSource
 
-    /**
-     * Binds the fake remote data source for development.
-     *
-     * TODO: Replace with real API implementation when backend is ready:
-     * @Binds
-     * @Singleton
-     * abstract fun bindAuthRemoteDataSource(impl: AuthRemoteDataSourceImpl): AuthRemoteDataSource
-     */
     @Binds
     @Singleton
     abstract fun bindAuthRemoteDataSource(impl: FakeAuthRemoteDataSource): AuthRemoteDataSource

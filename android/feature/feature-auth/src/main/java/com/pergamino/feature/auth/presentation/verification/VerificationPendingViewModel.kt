@@ -18,14 +18,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ViewModel for the Verification Pending screen.
- *
- * Handles:
- * - Observing auth state changes (for when verification completes)
- * - Resend functionality with cooldown timer
- * - Navigation events
- */
 @HiltViewModel
 class VerificationPendingViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -47,9 +39,6 @@ class VerificationPendingViewModel @Inject constructor(
         observeAuthState()
     }
 
-    /**
-     * Observes auth state changes to detect when verification is complete.
-     */
     private fun observeAuthState() {
         viewModelScope.launch {
             observeAuthStateUseCase().collect { authState ->
@@ -58,11 +47,9 @@ class VerificationPendingViewModel @Inject constructor(
                         _events.send(VerificationPendingEvent.NavigateToMain)
                     }
                     is AuthState.Unauthenticated -> {
-                        // User logged out or verification expired
                         _events.send(VerificationPendingEvent.NavigateBack)
                     }
                     is AuthState.VerificationPending -> {
-                        // Update email if it changed (e.g., after resend)
                         _uiState.update { it.copy(email = authState.email.value) }
                     }
                 }
@@ -70,9 +57,6 @@ class VerificationPendingViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Called when the user taps the resend button.
-     */
     fun onResendClicked() {
         if (!_uiState.value.canResend) return
 
@@ -93,18 +77,12 @@ class VerificationPendingViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Called when the user taps the change email button.
-     */
     fun onChangeEmailClicked() {
         viewModelScope.launch {
             _events.send(VerificationPendingEvent.NavigateBack)
         }
     }
 
-    /**
-     * Starts the cooldown timer after a resend.
-     */
     private fun startCooldownTimer() {
         cooldownJob?.cancel()
         cooldownJob = viewModelScope.launch {
@@ -119,9 +97,6 @@ class VerificationPendingViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Called when the user dismisses an error.
-     */
     fun onErrorDismissed() {
         _uiState.update { it.copy(error = null) }
     }

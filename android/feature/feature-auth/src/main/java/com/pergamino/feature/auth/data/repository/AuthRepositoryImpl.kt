@@ -19,20 +19,11 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Implementation of [AuthRepository] that coordinates remote and local data sources.
- *
- * This repository:
- * - Uses the remote data source for API calls
- * - Persists state changes to local storage
- * - Exposes a reactive auth state flow
- * - Executes IO operations on the IO dispatcher
- */
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val remoteDataSource: AuthRemoteDataSource,
     private val localDataSource: AuthLocalDataSource,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : AuthRepository {
 
     override val authState: Flow<AuthState> = localDataSource.authStateData
@@ -44,7 +35,6 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<AuthState.VerificationPending, AuthError> = withContext(ioDispatcher) {
         remoteDataSource.requestVerification(email.value)
             .map { response ->
-                // Save pending state locally
                 localDataSource.saveVerificationPending(
                     email = email.value,
                     expiresAt = response.expiresAt
@@ -62,11 +52,9 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<AuthState.Authenticated, AuthError> = withContext(ioDispatcher) {
         remoteDataSource.verifyToken(token.value)
             .flatMap { response ->
-                // Create the Email value object for the User
                 Email.create(response.email)
                     .mapError { AuthError.ServerError("Invalid email in response") }
                     .map { email ->
-                        // Save authenticated state locally
                         localDataSource.saveAuthenticated(
                             userId = response.userId,
                             email = response.email,
@@ -94,7 +82,6 @@ class AuthRepositoryImpl @Inject constructor(
 
         remoteDataSource.requestVerification(pendingEmail)
             .map { response ->
-                // Update the expiry time
                 localDataSource.saveVerificationPending(
                     email = pendingEmail,
                     expiresAt = response.expiresAt
@@ -107,15 +94,11 @@ class AuthRepositoryImpl @Inject constructor(
         Result.success(Unit)
     }
 
-    /**
-     * Maps persisted auth state to domain auth state.
-     */
     private fun PersistedAuthState?.toDomain(): AuthState {
         return when (this) {
             null -> AuthState.Unauthenticated
 
             is PersistedAuthState.VerificationPending -> {
-                // Create Email value object - if it fails, return unauthenticated
                 val emailResult = Email.create(email)
                 when (emailResult) {
                     is Result.Success -> AuthState.VerificationPending(
@@ -127,7 +110,6 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             is PersistedAuthState.Authenticated -> {
-                // Create Email value object - if it fails, return unauthenticated
                 val emailResult = Email.create(email)
                 when (emailResult) {
                     is Result.Success -> {

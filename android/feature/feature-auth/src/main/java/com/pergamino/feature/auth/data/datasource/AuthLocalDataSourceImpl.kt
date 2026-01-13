@@ -17,15 +17,9 @@ import javax.inject.Singleton
 
 private val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_preferences")
 
-/**
- * DataStore-based implementation of [AuthLocalDataSource].
- *
- * Uses Android DataStore Preferences for persisting authentication state.
- * This provides a reactive, type-safe way to store key-value pairs.
- */
 @Singleton
 class AuthLocalDataSourceImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : AuthLocalDataSource {
 
     override val authStateData: Flow<PersistedAuthState?> = context.authDataStore.data.map { prefs ->
@@ -59,7 +53,6 @@ class AuthLocalDataSourceImpl @Inject constructor(
             prefs[KEY_AUTH_STATE_TYPE] = STATE_VERIFICATION_PENDING
             prefs[KEY_EMAIL] = email
             prefs[KEY_EXPIRES_AT] = expiresAt.toEpochMilli()
-            // Clear authenticated state keys
             prefs.remove(KEY_USER_ID)
             prefs.remove(KEY_ACCESS_TOKEN)
             prefs.remove(KEY_CREATED_AT)
@@ -78,7 +71,6 @@ class AuthLocalDataSourceImpl @Inject constructor(
             prefs[KEY_EMAIL] = email
             prefs[KEY_ACCESS_TOKEN] = accessToken
             prefs[KEY_CREATED_AT] = createdAt.toEpochMilli()
-            // Clear pending state keys
             prefs.remove(KEY_EXPIRES_AT)
         }
     }

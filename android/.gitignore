@@ -80,5 +80,6 @@ lint-results.xml
 # Backup files
 *~
 
-# Claude temporal files
+# Claude
+
 tmpclaude*
