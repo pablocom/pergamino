@@ -2,29 +2,29 @@ defmodule Pergamino.Web.Router do
   use Pergamino, :router
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
   end
 
   scope "/api", Pergamino do
-    pipe_through :api
+    pipe_through(:api)
 
-    post "/auth/login", AuthController, :login
+    post("/auth/login", AuthController, :login)
   end
 
   if Application.compile_env(:pergamino, :dev_routes) do
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
-      pipe_through [:browser]
+      pipe_through([:browser])
 
-      live_dashboard "/dashboard", metrics: Pergamino.Telemetry
+      live_dashboard("/dashboard", metrics: Pergamino.Telemetry)
     end
   end
 end

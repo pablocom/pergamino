@@ -2,22 +2,24 @@ defmodule Pergamino.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :pergamino
 
   if code_reloading? do
-    plug Phoenix.CodeReloader
+    plug(Phoenix.CodeReloader)
   end
 
-  plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  plug(Plug.RequestId)
+  plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
 
-  plug Plug.Parsers,
+  plug(Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
+  )
 
-  plug Plug.Session,
+  plug(Plug.Session,
     store: :cookie,
     key: "_pergamino_key",
     signing_salt: "SECRET_SIGNING_SALT",
     same_site: "Lax"
+  )
 
-  plug Pergamino.Web.Router
+  plug(Pergamino.Web.Router)
 end
