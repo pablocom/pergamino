@@ -3,7 +3,14 @@
     "allow": [
       "Bash(dir:*)",
       "WebSearch",
-      "Bash(gradlew.bat --version:*)"
+      "Bash(gradlew.bat --version:*)",
+      "Bash($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\")",
+      "Bash(.gradlew.bat test)",
+      "Bash(export JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\")",
+      "Bash(./gradlew.bat test:*)",
+      "Bash(mix deps.get:*)",
+      "Bash(mix compile:*)",
+      "Bash(mix test:*)"
     ]
   }
 }
