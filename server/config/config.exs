@@ -7,7 +7,7 @@ config :pergamino, Pergamino.Web.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: Pergamino.Web.ErrorJSON],
+    formats: [json: Pergamino.Web.Controllers.ErrorJSON],
     layout: false
   ],
   pubsub_server: Pergamino.PubSub,

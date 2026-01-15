@@ -1,4 +1,4 @@
-defmodule Pergamino.Web.ErrorJSON do
+defmodule Pergamino.Web.Controllers.ErrorJSON do
   def render(template, _assigns) do
     %{errors: %{detail: Phoenix.Controller.status_message_from_template(template)}}
   end

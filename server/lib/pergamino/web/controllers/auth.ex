@@ -1,4 +1,4 @@
-defmodule Pergamino.Web.AuthController do
+defmodule Pergamino.Web.Controllers.Auth do
   use Pergamino, :controller
 
   def login(conn, _params) do

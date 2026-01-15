@@ -10,3 +10,5 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix, sort_verified_routes_query_params: true
+
+config :pergamino, jwt_secret_key: "test_secret_key_123"

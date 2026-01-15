@@ -33,12 +33,13 @@ defmodule Pergamino.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.8.3"},
-      {:phoenix_live_dashboard, "~> 0.8.3", only: [:dev, :test]},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:jason, "~> 1.2"},
+      {:jason, "~> 1.4"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
+      {:joken, "~> 2.6"},
       {:mox, "~> 1.0", only: :test}
     ]
   end

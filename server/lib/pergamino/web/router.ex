@@ -12,10 +12,10 @@ defmodule Pergamino.Web.Router do
     plug(:put_secure_browser_headers)
   end
 
-  scope "/api", Pergamino do
+  scope "/api", Pergamino.Web do
     pipe_through(:api)
 
-    post("/auth/login", AuthController, :login)
+    post("/auth/login", Controllers.Auth, :login)
   end
 
   if Application.compile_env(:pergamino, :dev_routes) do
@@ -23,8 +23,7 @@ defmodule Pergamino.Web.Router do
 
     scope "/dev" do
       pipe_through([:browser])
-
-      live_dashboard("/dashboard", metrics: Pergamino.Telemetry)
+      live_dashboard("/dashboard", metrics: Pergamino.Web.Telemetry)
     end
   end
 end

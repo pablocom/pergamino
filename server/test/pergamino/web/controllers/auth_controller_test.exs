@@ -1,4 +1,4 @@
-defmodule Pergamino.Web.AuthControllerTest do
+defmodule Pergamino.Web.Controllers.AuthTest do
   use Pergamino.ConnCase
 
   describe "POST /api/auth/login" do
