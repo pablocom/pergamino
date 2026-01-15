@@ -7,6 +7,8 @@ defmodule PergaminoWeb.Router do
 
   scope "/api", PergaminoWeb do
     pipe_through :api
+
+    post "/auth/login", AuthController, :login
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
@@ -22,7 +24,6 @@ defmodule PergaminoWeb.Router do
       pipe_through [:fetch_session, :protect_from_forgery]
 
       live_dashboard "/dashboard", metrics: PergaminoWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end

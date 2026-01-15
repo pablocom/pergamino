@@ -19,17 +19,7 @@ config :pergamino, PergaminoWeb.Endpoint,
     formats: [json: PergaminoWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Pergamino.PubSub,
-  live_view: [signing_salt: "sVonAw80"]
-
-# Configure the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :pergamino, Pergamino.Mailer, adapter: Swoosh.Adapters.Local
+  pubsub_server: Pergamino.PubSub
 
 # Configure Elixir's Logger
 config :logger, :default_formatter,

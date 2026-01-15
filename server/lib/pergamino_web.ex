@@ -17,7 +17,7 @@ defmodule PergaminoWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: []
 
   def router do
     quote do
@@ -37,9 +37,7 @@ defmodule PergaminoWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, formats: [:html, :json]
-
-      use Gettext, backend: PergaminoWeb.Gettext
+      use Phoenix.Controller, formats: [:json]
 
       import Plug.Conn
 

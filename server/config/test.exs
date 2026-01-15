@@ -20,12 +20,6 @@ config :pergamino, PergaminoWeb.Endpoint,
   secret_key_base: "/CMSftyxv4Plh/vy9Es6S3wLOoi4Lvs8whr7xP9F9UmrbbQeogvz73aqpLQDTwLi",
   server: false
 
-# In test we don't send emails
-config :pergamino, Pergamino.Mailer, adapter: Swoosh.Adapters.Test
-
-# Disable swoosh api client as it is only required for production adapters
-config :swoosh, :api_client, false
-
 # Print only warnings and errors during test
 config :logger, level: :warning
 
