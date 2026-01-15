@@ -1,6 +1,6 @@
 import Config
 
-config :pergamino, PergaminoWeb.Endpoint,
+config :pergamino, Pergamino.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "/CMSftyxv4Plh/vy9Es6S3wLOoi4Lvs8whr7xP9F9UmrbbQeogvz73aqpLQDTwLi",
   server: false

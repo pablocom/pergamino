@@ -1,6 +1,6 @@
 import Config
 
-config :pergamino, PergaminoWeb.Endpoint,
+config :pergamino, Pergamino.Endpoint,
   http: [ip: {127, 0, 0, 1}],
   check_origin: false,
   code_reloader: true,

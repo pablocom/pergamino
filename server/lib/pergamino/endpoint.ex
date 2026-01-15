@@ -1,4 +1,4 @@
-defmodule PergaminoWeb.Endpoint do
+defmodule Pergamino.Endpoint do
   use Phoenix.Endpoint, otp_app: :pergamino
 
   if code_reloading? do
@@ -13,7 +13,5 @@ defmodule PergaminoWeb.Endpoint do
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
 
-  plug Plug.MethodOverride
-  plug Plug.Head
-  plug PergaminoWeb.Router
+  plug Pergamino.Router
 end

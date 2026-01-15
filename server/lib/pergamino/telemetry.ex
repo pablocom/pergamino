@@ -1,4 +1,4 @@
-defmodule PergaminoWeb.Telemetry do
+defmodule Pergamino.Telemetry do
   use Supervisor
   import Telemetry.Metrics
 

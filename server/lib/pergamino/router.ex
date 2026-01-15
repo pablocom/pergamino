@@ -1,11 +1,11 @@
-defmodule PergaminoWeb.Router do
-  use PergaminoWeb, :router
+defmodule Pergamino.Router do
+  use Pergamino, :router
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  scope "/api", PergaminoWeb do
+  scope "/api", Pergamino do
     pipe_through :api
 
     post "/auth/login", AuthController, :login
@@ -17,7 +17,7 @@ defmodule PergaminoWeb.Router do
     scope "/dev" do
       pipe_through [:fetch_session, :protect_from_forgery]
 
-      live_dashboard "/dashboard", metrics: PergaminoWeb.Telemetry
+      live_dashboard "/dashboard", metrics: Pergamino.Telemetry
     end
   end
 end

@@ -3,11 +3,11 @@ import Config
 config :pergamino,
   generators: [timestamp_type: :utc_datetime]
 
-config :pergamino, PergaminoWeb.Endpoint,
+config :pergamino, Pergamino.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: PergaminoWeb.ErrorJSON],
+    formats: [json: Pergamino.ErrorJSON],
     layout: false
   ],
   pubsub_server: Pergamino.PubSub

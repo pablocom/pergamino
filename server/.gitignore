@@ -25,3 +25,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 pergamino-*.tar
 
+# Elixir LS
+/.elixir_ls/

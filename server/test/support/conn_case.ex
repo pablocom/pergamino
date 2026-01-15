@@ -1,17 +1,17 @@
-defmodule PergaminoWeb.ConnCase do
+defmodule Pergamino.ConnCase do
   @moduledoc false
 
   use ExUnit.CaseTemplate
 
   using do
     quote do
-      @endpoint PergaminoWeb.Endpoint
+      @endpoint Pergamino.Endpoint
 
-      use PergaminoWeb, :verified_routes
+      use Pergamino, :verified_routes
 
       import Plug.Conn
       import Phoenix.ConnTest
-      import PergaminoWeb.ConnCase
+      import Pergamino.ConnCase
     end
   end
 
