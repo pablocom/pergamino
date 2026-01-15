@@ -8,7 +8,6 @@
 import Config
 
 config :pergamino,
-  ecto_repos: [Pergamino.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configure the endpoint

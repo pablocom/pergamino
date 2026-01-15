@@ -9,7 +9,6 @@ defmodule Pergamino.Application do
   def start(_type, _args) do
     children = [
       PergaminoWeb.Telemetry,
-      Pergamino.Repo,
       {DNSCluster, query: Application.get_env(:pergamino, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pergamino.PubSub},
       # Start a worker by calling: Pergamino.Worker.start_link(arg)
