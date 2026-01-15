@@ -10,7 +10,8 @@
       "Bash(./gradlew.bat test:*)",
       "Bash(mix deps.get:*)",
       "Bash(mix compile:*)",
-      "Bash(mix test:*)"
+      "Bash(mix test:*)",
+      "Bash(mix deps.clean:*)"
     ]
   }
 }
