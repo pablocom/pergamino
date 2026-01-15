@@ -5,7 +5,7 @@ defmodule Pergamino.ConnCase do
 
   using do
     quote do
-      @endpoint Pergamino.Endpoint
+      @endpoint Pergamino.Web.Endpoint
 
       use Pergamino, :verified_routes
 

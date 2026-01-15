@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1.20.4
+        with:
+          elixir-version: "1.19"
+          otp-version: "27"
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            server/deps
+            server/_build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        working-directory: server
+        run: mix deps.get
+
+      - name: Compile code
+        working-directory: server
+        run: mix compile --warnings-as-errors
+
+      - name: Check formatting
+        working-directory: server
+        run: mix format --check-formatted
+
+      - name: Run tests
+        working-directory: server
+        run: mix test

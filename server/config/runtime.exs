@@ -1,10 +1,10 @@
 import Config
 
 if System.get_env("PHX_SERVER") do
-  config :pergamino, Pergamino.Endpoint, server: true
+  config :pergamino, Pergamino.Web.Endpoint, server: true
 end
 
-config :pergamino, Pergamino.Endpoint,
+config :pergamino, Pergamino.Web.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do

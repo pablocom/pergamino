@@ -1,4 +1,4 @@
-defmodule Pergamino.Endpoint do
+defmodule Pergamino.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :pergamino
 
   if code_reloading? do
@@ -13,5 +13,11 @@ defmodule Pergamino.Endpoint do
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
 
-  plug Pergamino.Router
+  plug Plug.Session,
+    store: :cookie,
+    key: "_pergamino_key",
+    signing_salt: "SECRET_SIGNING_SALT",
+    same_site: "Lax"
+
+  plug Pergamino.Web.Router
 end

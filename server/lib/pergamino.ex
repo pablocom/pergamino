@@ -6,10 +6,10 @@ defmodule Pergamino.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      Pergamino.Telemetry,
+      Pergamino.Web.Telemetry,
       {DNSCluster, query: Application.get_env(:pergamino, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pergamino.PubSub},
-      Pergamino.Endpoint
+      Pergamino.Web.Endpoint
     ]
 
     opts = [strategy: :one_for_one, name: Pergamino.Supervisor]
@@ -18,7 +18,7 @@ defmodule Pergamino.Application do
 
   @impl true
   def config_change(changed, _new, removed) do
-    Pergamino.Endpoint.config_change(changed, removed)
+    Pergamino.Web.Endpoint.config_change(changed, removed)
     :ok
   end
 end
@@ -54,8 +54,8 @@ defmodule Pergamino do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Pergamino.Endpoint,
-        router: Pergamino.Router,
+        endpoint: Pergamino.Web.Endpoint,
+        router: Pergamino.Web.Router,
         statics: Pergamino.static_paths()
     end
   end

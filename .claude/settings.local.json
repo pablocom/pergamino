@@ -12,7 +12,8 @@
       "Bash(mix compile:*)",
       "Bash(mix test:*)",
       "Bash(mix deps.clean:*)",
-      "Bash(mix help:*)"
+      "Bash(mix help:*)",
+      "Bash(timeout 5 mix phx.server:*)"
     ]
   }
 }

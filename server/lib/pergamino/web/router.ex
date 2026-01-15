@@ -1,8 +1,15 @@
-defmodule Pergamino.Router do
+defmodule Pergamino.Web.Router do
   use Pergamino, :router
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
   end
 
   scope "/api", Pergamino do
@@ -15,7 +22,7 @@ defmodule Pergamino.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
-      pipe_through [:fetch_session, :protect_from_forgery]
+      pipe_through [:browser]
 
       live_dashboard "/dashboard", metrics: Pergamino.Telemetry
     end
