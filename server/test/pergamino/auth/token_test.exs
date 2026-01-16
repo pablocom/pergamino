@@ -6,7 +6,7 @@ defmodule Pergamino.Auth.TokenTest do
   @ten_minutes_in_seconds 600
 
   describe "generate/1" do
-   test "token contains the email in claims" do
+    test "token contains the email in claims" do
       email = "test@example.com"
 
       {:ok, jwt_token} = Token.generate(email)

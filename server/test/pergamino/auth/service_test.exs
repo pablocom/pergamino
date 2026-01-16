@@ -4,16 +4,16 @@ defmodule Pergamino.Auth.ServiceTest do
   alias Pergamino.Auth.Service
 
   @invalid_email_scenarios [
-    {"plainaddress",                  "missing @ symbol"},
-    {"@example.com",                  "missing local part"},
-    {"joe.smith@.com",                "domain starts with dot"},
-    {"joe.smith@",                    "missing domain"},
+    {"plainaddress", "missing @ symbol"},
+    {"@example.com", "missing local part"},
+    {"joe.smith@.com", "domain starts with dot"},
+    {"joe.smith@", "missing domain"},
     {"email@example.com (Joe Smith)", "contains comment/parentheses"},
-    {"email@example .com",            "contains spaces in domain"},
-    {"user name@example.com",         "contains spaces in local part"},
-    {"user+name@exam_ple.com",        "domain contains underscore"},
-    {"",                              "is empty string"},
-    {nil,                             "is nil"},
+    {"email@example .com", "contains spaces in domain"},
+    {"user name@example.com", "contains spaces in local part"},
+    {"user+name@exam_ple.com", "domain contains underscore"},
+    {"", "is empty string"},
+    {nil, "is nil"},
     {String.duplicate("a", 255) <> "@example.com", "exceeds 255 chars"}
   ]
 

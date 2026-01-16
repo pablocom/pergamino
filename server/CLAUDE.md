@@ -159,6 +159,20 @@ Assistant: [Uses Task tool with subagent_type: "elixir-architect"]
 
 This agent follows TDD, SOLID principles, and provides pedagogical explanations. See `.claude/agents/elixir-architect.md` for details.
 
+## Code Style
+
+**No Comments or Documentation**: This project emphasizes self-explanatory code over documentation:
+- No `@moduledoc` - Module names and structure should be self-evident
+- No `@doc` - Function names and type specs should convey intent
+- No inline comments - Code should be clear enough to read directly
+- Keep `@spec` type specifications - They serve as contracts, not documentation
+
+Focus on:
+- Clear, descriptive function and variable names
+- Small, focused functions that do one thing
+- Proper type specifications with `@spec`
+- Well-structured code that reads like prose
+
 ## What's NOT in This Project
 
 - **No Ecto/Database**: All removed to keep the API minimal
