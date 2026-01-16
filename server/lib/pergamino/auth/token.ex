@@ -1,5 +1,4 @@
 defmodule Pergamino.Auth.Token do
-
   alias Pergamino.Domain.Email
 
   alias __MODULE__.JokenToken
@@ -35,7 +34,11 @@ defmodule Pergamino.Auth.Token do
 
     @impl Joken.Config
     def token_config do
-      default_claims(iss: "pergamino", default_exp: @expiration_in_seconds)
+      default_claims(
+        aud: "pergamino",
+        iss: "pergamino",
+        default_exp: @expiration_in_seconds
+      )
       |> add_claim("email", nil, &(&1 != nil))
     end
   end
