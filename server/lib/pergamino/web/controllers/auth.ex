@@ -3,7 +3,7 @@ defmodule Pergamino.Web.Controllers.Auth do
 
   alias Pergamino.Auth.Service
 
-  action_fallback Pergamino.Web.Controllers.Fallback
+  action_fallback(Pergamino.Web.Controllers.Fallback)
 
   def device_binding_link(conn, params) do
     with {:ok, email} <- fetch_email_param(params),
