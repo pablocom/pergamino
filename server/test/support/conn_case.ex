@@ -12,6 +12,7 @@ defmodule Pergamino.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import Pergamino.ConnCase
+      import Pergamino.ProblemDetailsHelpers
     end
   end
 

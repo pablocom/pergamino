@@ -16,31 +16,13 @@ defmodule Pergamino.Web.Controllers.AuthTest do
     test "returns Problem Details when email parameter is missing", %{conn: conn} do
       conn = post(conn, ~p"/api/auth/device-binding-link", %{})
 
-      assert json_response(conn, 400) == %{
-               "type" => "https://pergamino.dev/problems/validation-error",
-               "title" => "Validation Error",
-               "status" => 400,
-               "detail" => "Email parameter is required",
-               "instance" => "/api/auth/device-binding-link",
-               "extensions" => %{
-                 "error_code" => "INVALID_EMAIL"
-               }
-             }
+      assert_validation_error(conn, "Email parameter is required", "/api/auth/device-binding-link")
     end
 
     test "returns Problem Details when email format is invalid", %{conn: conn} do
       conn = post(conn, ~p"/api/auth/device-binding-link", %{"email" => "not-an-email"})
 
-      assert json_response(conn, 400) == %{
-               "type" => "https://pergamino.dev/problems/validation-error",
-               "title" => "Validation Error",
-               "status" => 400,
-               "detail" => "Email format is invalid",
-               "instance" => "/api/auth/device-binding-link",
-               "extensions" => %{
-                 "error_code" => "INVALID_EMAIL"
-               }
-             }
+      assert_validation_error(conn, "Email format is invalid", "/api/auth/device-binding-link")
     end
   end
 end
