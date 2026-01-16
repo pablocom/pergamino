@@ -6,7 +6,7 @@ defmodule Pergamino.Web.Controllers.AuthTest do
       conn = post(conn, ~p"/api/auth/login")
 
       assert json_response(conn, 200) == %{
-               "deeplink" => "myapp://verify?token=secret_123"
+               "deeplink" => "pergamino://verify?token=secret_123"
              }
     end
   end

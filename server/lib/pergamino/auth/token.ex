@@ -1,4 +1,7 @@
 defmodule Pergamino.Auth.Token do
+
+  alias Pergamino.Domain.Email
+
   alias __MODULE__.JokenToken
 
   @type claims :: %{
@@ -9,9 +12,9 @@ defmodule Pergamino.Auth.Token do
         }
   @type error :: Joken.error_reason()
 
-  @spec generate(email :: String.t()) :: {:ok, String.t()} | {:error, error()}
-  def generate(email) do
-    case JokenToken.generate_and_sign(%{"email" => email}, signer()) do
+  @spec generate(email :: Email.t()) :: {:ok, String.t()} | {:error, error()}
+  def generate(%Email{} = email) do
+    case JokenToken.generate_and_sign(%{"email" => email.address}, signer()) do
       {:ok, token, _claims} -> {:ok, token}
       {:error, _reason} = err -> err
     end
