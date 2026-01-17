@@ -40,6 +40,8 @@ defmodule Pergamino.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:joken, "~> 2.6"},
+      {:swoosh, "~> 1.16"},
+      {:finch, "~> 0.16"},
       {:mox, "~> 1.0", only: :test}
     ]
   end

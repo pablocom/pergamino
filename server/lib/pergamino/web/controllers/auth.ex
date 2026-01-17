@@ -7,8 +7,8 @@ defmodule Pergamino.Web.Controllers.Auth do
 
   def device_binding_link(conn, params) do
     with {:ok, email} <- fetch_email_param(params),
-         {:ok, deeplink} <- Service.create_device_binding_link(email) do
-      json(conn, %{deeplink: deeplink})
+         :ok <- Service.create_device_binding_link(email) do
+      send_resp(conn, 202, "")
     end
   end
 

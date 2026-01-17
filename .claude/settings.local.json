@@ -16,7 +16,10 @@
       "Bash(timeout 5 mix phx.server:*)",
       "Bash(tree:*)",
       "Bash(MIX_ENV=prod mix compile:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git add:*)",
+      "Bash(mix run:*)",
+      "Bash(mix format:*)"
     ]
   }
 }

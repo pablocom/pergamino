@@ -13,7 +13,7 @@ defmodule Pergamino.ProblemDetailsHelpers do
   @spec assert_validation_error(Plug.Conn.t(), String.t(), String.t()) :: map()
   def assert_validation_error(conn, expected_detail, expected_instance) do
     assert_problem_details(conn, 400,
-      type: "https://pergamino.dev/problems/validation-error",
+      type: "validation-error",
       title: "Validation Error",
       status: 400,
       detail: expected_detail,
@@ -25,7 +25,7 @@ defmodule Pergamino.ProblemDetailsHelpers do
   @spec assert_internal_error(Plug.Conn.t(), String.t()) :: map()
   def assert_internal_error(conn, expected_instance) do
     assert_problem_details(conn, 500,
-      type: "https://pergamino.dev/problems/internal-error",
+      type: "internal-error",
       title: "Internal Server Error",
       status: 500,
       detail: "An unexpected error occurred",

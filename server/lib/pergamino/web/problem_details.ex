@@ -12,6 +12,7 @@ defmodule Pergamino.Web.ProblemDetails do
           :missing_email
           | :invalid_email_format
           | :internal_server_error
+          | :service_unavailable
           | :not_implemented
 
   @spec build(error_code(), String.t()) :: t()
@@ -22,7 +23,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp base_problem(:missing_email) do
     %{
-      type: "https://pergamino.dev/problems/validation-error",
+      type: "validation-error",
       title: "Validation Error",
       status: 400,
       detail: "Email parameter is required",
@@ -34,7 +35,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp base_problem(:invalid_email_format) do
     %{
-      type: "https://pergamino.dev/problems/validation-error",
+      type: "validation-error",
       title: "Validation Error",
       status: 400,
       detail: "Email format is invalid",
@@ -46,7 +47,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp base_problem(:internal_server_error) do
     %{
-      type: "https://pergamino.dev/problems/internal-error",
+      type: "internal-error",
       title: "Internal Server Error",
       status: 500,
       detail: "An unexpected error occurred",
@@ -54,9 +55,19 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
+  defp base_problem(:service_unavailable) do
+    %{
+      type: "service-unavailable",
+      title: "Service Unavailable",
+      status: 503,
+      detail: "Unable to send email. Please try again later.",
+      extensions: %{}
+    }
+  end
+
   defp base_problem(:not_implemented) do
     %{
-      type: "https://pergamino.dev/problems/not-implemented",
+      type: "not-implemented",
       title: "Not Implemented",
       status: 501,
       detail: "This feature is not yet implemented",

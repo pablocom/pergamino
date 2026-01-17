@@ -19,4 +19,8 @@ if config_env() == :prod do
   config :pergamino, Pergamino.Web.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}]
+
+  config :pergamino, Pergamino.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key: System.fetch_env!("RESEND_API_KEY")
 end

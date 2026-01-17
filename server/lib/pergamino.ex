@@ -9,6 +9,7 @@ defmodule Pergamino.Application do
       Pergamino.Web.Telemetry,
       {DNSCluster, query: Application.get_env(:pergamino, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pergamino.PubSub},
+      {Finch, name: Pergamino.Finch},
       Pergamino.Auth.Token.SignerLoader,
       Pergamino.Web.Endpoint
     ]

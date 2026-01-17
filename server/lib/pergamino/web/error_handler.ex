@@ -25,6 +25,7 @@ defmodule Pergamino.Web.ErrorHandler do
       :missing_email -> {:ok, 400, :missing_email}
       :invalid_email -> {:ok, 400, :invalid_email_format}
       :token_generation_failed -> {:ok, 500, :internal_server_error}
+      :email_delivery_failed -> {:ok, 503, :service_unavailable}
       :not_implemented -> {:ok, 501, :not_implemented}
       _ -> :unknown
     end

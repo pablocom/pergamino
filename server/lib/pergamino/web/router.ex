@@ -24,6 +24,7 @@ defmodule Pergamino.Web.Router do
     scope "/dev" do
       pipe_through([:browser])
       live_dashboard("/dashboard", metrics: Pergamino.Web.Telemetry)
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 end

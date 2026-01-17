@@ -1,6 +1,8 @@
 defmodule Pergamino.Auth.ServiceTest do
   use ExUnit.Case, async: true
 
+  import Swoosh.TestAssertions
+
   alias Pergamino.Auth.Service
   alias Pergamino.Auth.Token
 
@@ -26,27 +28,32 @@ defmodule Pergamino.Auth.ServiceTest do
         email = unquote(email_input)
 
         assert {:error, :invalid_email} = Service.create_device_binding_link(email)
+        assert_no_email_sent()
       end
     end
 
-    test "returns a device binding deeplink with a token containing the user email" do
+    test "sends device binding email with valid JWT token" do
       email = "pablocom96@pablo.com"
 
-      {:ok, deeplink} = Service.create_device_binding_link(email)
+      assert :ok = Service.create_device_binding_link(email)
 
-      assert String.starts_with?(deeplink, "pergamino://bind?token=")
+      assert_email_sent(fn sent_email ->
+        token = extract_token_from_email(sent_email)
+        {:ok, claims} = Token.verify(token)
 
-      {:ok, claims} = Token.verify(get_token_from_deeplink(deeplink))
-
-      assert claims["email"] == email
-      assert claims["iss"] == "pergamino"
-      assert claims["exp"] - claims["iat"] == @ten_minutes_in_seconds
+        sent_email.to == [{"", email}] and
+          sent_email.from == {"", "noreply@pergamino.dev"} and
+          sent_email.subject == "Complete Your Device Setup" and
+          String.contains?(sent_email.text_body, "pergamino://bind?token=") and
+          claims["email"] == email and
+          claims["iss"] == "pergamino" and
+          claims["exp"] - claims["iat"] == @ten_minutes_in_seconds
+      end)
     end
 
-    defp get_token_from_deeplink(deeplink) do
-      uri = URI.parse(deeplink)
-      query_params = URI.decode_query(uri.query)
-      Map.get(query_params, "token")
+    defp extract_token_from_email(email) do
+      [_, token_part] = String.split(email.text_body, "pergamino://bind?token=")
+      String.trim(token_part)
     end
   end
 end
