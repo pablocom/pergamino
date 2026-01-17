@@ -10,7 +10,7 @@ config :pergamino, Pergamino.Web.Endpoint,
 
 config :pergamino, dev_routes: true
 
-config :pergamino, Pergamino.Mailer, adapter: Swoosh.Adapters.Local
+config :pergamino, Pergamino.Infrastructure.Messaging.EmailSender, adapter: Swoosh.Adapters.Local
 
 config :logger, :default_formatter, format: "[$level] $message\n"
 

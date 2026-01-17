@@ -5,7 +5,9 @@
       "Bash(mix test:*)",
       "Bash(git add:*)",
       "Bash(mix format:*)",
-      "Bash(mix compile:*)"
+      "Bash(mix compile:*)",
+      "Bash(mix precommit:*)",
+      "Bash(tree:*)"
     ]
   }
 }

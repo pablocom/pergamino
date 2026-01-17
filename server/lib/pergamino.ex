@@ -10,7 +10,7 @@ defmodule Pergamino.Application do
       {DNSCluster, query: Application.get_env(:pergamino, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pergamino.PubSub},
       {Finch, name: Pergamino.Finch},
-      Pergamino.Auth.Token.SignerLoader,
+      Pergamino.Infrastructure.Auth.TokenGenerator.SignerLoader,
       Pergamino.Web.Endpoint
     ]
 

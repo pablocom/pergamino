@@ -1,4 +1,4 @@
-defmodule Pergamino.Domain.Email do
+defmodule Pergamino.Domain.EmailAddress do
   @type t :: %__MODULE__{
           address: String.t()
         }

@@ -7,7 +7,7 @@ config :pergamino, Pergamino.Web.Endpoint,
 
 config :logger, level: :warning
 
-config :pergamino, Pergamino.Mailer, adapter: Swoosh.Adapters.Test
+config :pergamino, Pergamino.Infrastructure.Messaging.EmailSender, adapter: Swoosh.Adapters.Test
 
 config :phoenix, :plug_init_mode, :runtime
 

@@ -19,7 +19,8 @@
       "Bash(findstr:*)",
       "Bash(git add:*)",
       "Bash(mix run:*)",
-      "Bash(mix format:*)"
+      "Bash(mix format:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

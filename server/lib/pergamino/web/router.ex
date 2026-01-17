@@ -15,7 +15,7 @@ defmodule Pergamino.Web.Router do
   scope "/api", Pergamino.Web do
     pipe_through(:api)
 
-    post("/auth/device-binding-link", Controllers.Auth, :device_binding_link)
+    post("/device-binding-link", Controllers.DeviceBinding, :create)
   end
 
   if Application.compile_env(:pergamino, :dev_routes) do
