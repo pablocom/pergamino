@@ -1,15 +1,13 @@
 defmodule Pergamino.Auth.Service do
   alias Pergamino.Domain.Email
   alias Pergamino.Auth.Token
-  alias Pergamino.Auth.DeviceBindingEmail
   alias Pergamino.Mailer
 
   @spec create_device_binding_link(String.t()) :: :ok | {:error, atom()}
   def create_device_binding_link(email_string) do
     with {:ok, email} <- Email.create(email_string),
          {:ok, token} <- Token.generate(email),
-         email_struct <- DeviceBindingEmail.build(email.address, "pergamino://bind?token=#{token}"),
-         {:ok, _metadata} <- Mailer.deliver(email_struct) do
+         {:ok, _} <- Mailer.send({:device_binding, email, "pergamino://bind?token=#{token}"}) do
       :ok
     else
       {:error, reason} when reason in [:invalid_email, :token_generation_failed] ->
