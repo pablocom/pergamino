@@ -3,6 +3,7 @@ package com.pergamino.feature.emailverification
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pergamino.data.repository.EmailVerificationRepository
+import com.pergamino.domain.model.Email
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,34 +34,28 @@ class EmailVerificationViewModel @Inject constructor(
     }
 
     fun requestVerificationEmail() {
-        val currentEmail = _email.value.trim()
-
-        if (!isValidEmail(currentEmail)) {
+        val email = Email.create(_email.value.trim()).getOrElse {
             _emailError.value = "Please enter a valid email address"
             return
         }
 
         viewModelScope.launch {
             _uiState.value = EmailVerificationUiState.Loading
-            repository.requestVerificationEmail(currentEmail)
-                .onSuccess {
-                    _uiState.value = EmailVerificationUiState.Success
-                }
-                .onFailure { e ->
-                    _uiState.value = EmailVerificationUiState.Error(
+            
+            val result = repository.requestVerificationEmail(email)
+            
+            _uiState.value = result.fold(
+                onSuccess = { EmailVerificationUiState.Success },
+                onFailure = { e -> 
+                    EmailVerificationUiState.Error(
                         e.message ?: "Failed to send verification email"
-                    )
+                    ) 
                 }
+            )
         }
     }
 
     fun resetState() {
         _uiState.value = EmailVerificationUiState.Idle
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        if (email.isBlank()) return false
-        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-        return email.matches(emailRegex.toRegex())
     }
 }

@@ -7,8 +7,8 @@ import retrofit2.http.POST
 
 interface EmailVerificationApiService {
 
-    @POST("/api/verification/email")
+    @POST("/api/device-binding-link")
     suspend fun requestVerificationEmail(
         @Body request: VerificationRequest
-    ): VerificationResponse
+    )
 }

@@ -2,6 +2,7 @@ package com.pergamino.feature.emailverification
 
 import app.cash.turbine.test
 import com.pergamino.data.repository.EmailVerificationRepository
+import com.pergamino.domain.model.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,6 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -109,6 +111,8 @@ class EmailVerificationViewModelTest {
 
             assertEquals(EmailVerificationUiState.Success, awaitItem())
         }
+        
+        verify(repository).requestVerificationEmail(Email.create("test@example.com").getOrThrow())
     }
 
     @Test
@@ -152,6 +156,8 @@ class EmailVerificationViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
             assertEquals(EmailVerificationUiState.Success, awaitItem())
         }
+        
+        verify(repository).requestVerificationEmail(Email.create("test@example.com").getOrThrow())
     }
 
     @Test
