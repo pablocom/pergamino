@@ -12,7 +12,9 @@
       "Bash(cmd /c \"set JAVA_HOME=C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr && gradlew.bat assembleDebug\")",
       "Bash(export JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\")",
       "Bash(./gradlew:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(dir:*)",
+      "WebFetch(domain:dagger.dev)"
     ]
   }
 }

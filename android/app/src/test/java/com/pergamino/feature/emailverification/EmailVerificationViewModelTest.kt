@@ -1,6 +1,7 @@
 package com.pergamino.feature.emailverification
 
 import app.cash.turbine.test
+import com.pergamino.data.repository.EmailVerificationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -13,17 +14,22 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EmailVerificationViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+    private lateinit var repository: EmailVerificationRepository
     private lateinit var viewModel: EmailVerificationViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = EmailVerificationViewModel()
+        repository = mock()
+        viewModel = EmailVerificationViewModel(repository)
     }
 
     @After
@@ -89,6 +95,7 @@ class EmailVerificationViewModelTest {
 
     @Test
     fun `requestVerificationEmail with valid email transitions through Loading to Success`() = runTest {
+        whenever(repository.requestVerificationEmail(any())).thenReturn(Result.success(Unit))
         viewModel.onEmailChange("test@example.com")
 
         viewModel.uiState.test {
@@ -106,6 +113,7 @@ class EmailVerificationViewModelTest {
 
     @Test
     fun `resetState returns to Idle`() = runTest {
+        whenever(repository.requestVerificationEmail(any())).thenReturn(Result.success(Unit))
         viewModel.onEmailChange("test@example.com")
         viewModel.requestVerificationEmail()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -132,6 +140,7 @@ class EmailVerificationViewModelTest {
 
     @Test
     fun `email is trimmed before validation`() = runTest {
+        whenever(repository.requestVerificationEmail(any())).thenReturn(Result.success(Unit))
         viewModel.onEmailChange("  test@example.com  ")
 
         viewModel.uiState.test {
@@ -142,6 +151,27 @@ class EmailVerificationViewModelTest {
 
             testDispatcher.scheduler.advanceUntilIdle()
             assertEquals(EmailVerificationUiState.Success, awaitItem())
+        }
+    }
+
+    @Test
+    fun `requestVerificationEmail transitions to Error on repository failure`() = runTest {
+        whenever(repository.requestVerificationEmail(any()))
+            .thenReturn(Result.failure(Exception("Network error")))
+        viewModel.onEmailChange("test@example.com")
+
+        viewModel.uiState.test {
+            assertEquals(EmailVerificationUiState.Idle, awaitItem())
+
+            viewModel.requestVerificationEmail()
+
+            assertEquals(EmailVerificationUiState.Loading, awaitItem())
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val errorState = awaitItem()
+            assertTrue(errorState is EmailVerificationUiState.Error)
+            assertEquals("Network error", (errorState as EmailVerificationUiState.Error).message)
         }
     }
 }

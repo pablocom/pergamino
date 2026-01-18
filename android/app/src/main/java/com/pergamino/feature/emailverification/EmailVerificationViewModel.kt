@@ -2,13 +2,18 @@ package com.pergamino.feature.emailverification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.pergamino.data.repository.EmailVerificationRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EmailVerificationViewModel : ViewModel() {
+@HiltViewModel
+class EmailVerificationViewModel @Inject constructor(
+    private val repository: EmailVerificationRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EmailVerificationUiState>(EmailVerificationUiState.Idle)
     val uiState: StateFlow<EmailVerificationUiState> = _uiState.asStateFlow()
@@ -37,14 +42,15 @@ class EmailVerificationViewModel : ViewModel() {
 
         viewModelScope.launch {
             _uiState.value = EmailVerificationUiState.Loading
-            try {
-                sendVerificationEmail(currentEmail)
-                _uiState.value = EmailVerificationUiState.Success
-            } catch (e: Exception) {
-                _uiState.value = EmailVerificationUiState.Error(
-                    e.message ?: "Failed to send verification email"
-                )
-            }
+            repository.requestVerificationEmail(currentEmail)
+                .onSuccess {
+                    _uiState.value = EmailVerificationUiState.Success
+                }
+                .onFailure { e ->
+                    _uiState.value = EmailVerificationUiState.Error(
+                        e.message ?: "Failed to send verification email"
+                    )
+                }
         }
     }
 
@@ -56,9 +62,5 @@ class EmailVerificationViewModel : ViewModel() {
         if (email.isBlank()) return false
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
         return email.matches(emailRegex.toRegex())
-    }
-
-    private suspend fun sendVerificationEmail(email: String) {
-        delay(1500)
     }
 }
