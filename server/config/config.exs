@@ -10,6 +10,12 @@ config :pergamino, Pergamino.Web.Endpoint,
     formats: [json: Pergamino.Web.Controllers.ErrorJSON],
     layout: false
   ],
+  https: [
+    port: 4001,
+    cipher_suite: :strong,
+    certfile: "priv/cert/localhost.pem",
+    keyfile: "priv/cert/localhost_key.pem"
+  ],
   pubsub_server: Pergamino.PubSub,
   live_view: [signing_salt: "SECRET_SALT"]
 
