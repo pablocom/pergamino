@@ -4,7 +4,8 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSender do
 
   alias Pergamino.Domain.EmailAddress
 
-  @spec send_device_binding_email(EmailAddress.t(), String.t()) :: {:ok, term()} | {:error, term()}
+  @spec send_device_binding_email(EmailAddress.t(), String.t()) ::
+          {:ok, term()} | {:error, term()}
   def send_device_binding_email(%EmailAddress{} = recipient, deeplink) do
     recipient
     |> build_device_binding_email(deeplink)

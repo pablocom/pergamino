@@ -27,3 +27,6 @@ pergamino-*.tar
 
 # Elixir LS
 /.elixir_ls/
+
+# SSL certificates (generated via mix setup.ssl)
+/priv/cert/

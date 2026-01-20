@@ -8,3 +8,5 @@
 .cxx
 local.properties
 /.idea/
+
+/app/src/main/res/raw/localhost.pem

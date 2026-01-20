@@ -20,7 +20,16 @@
       "Bash(git add:*)",
       "Bash(mix run:*)",
       "Bash(mix format:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(where:*)",
+      "Bash(mix setup.ssl:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File scripts/setup-dev-env.ps1)",
+      "Bash(bash:*)",
+      "Bash(echo:*)",
+      "Bash(test:*)",
+      "Bash(mix precommit:*)"
     ]
   }
 }
