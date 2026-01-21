@@ -1,4 +1,4 @@
-package com.pergamino.data.network.model
+package com.pergamino.data.network.model.response
 
 import kotlinx.serialization.Serializable
 

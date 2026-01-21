@@ -2,7 +2,7 @@ package com.pergamino.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.pergamino.BuildConfig
-import com.pergamino.data.network.EmailVerificationApiService
+import com.pergamino.data.network.DeviceBindingService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -54,7 +54,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideEmailVerificationApiService(retrofit: Retrofit): EmailVerificationApiService {
-        return retrofit.create(EmailVerificationApiService::class.java)
+    fun provideDeviceBindingService(retrofit: Retrofit): DeviceBindingService {
+        return retrofit.create(DeviceBindingService::class.java)
     }
 }
