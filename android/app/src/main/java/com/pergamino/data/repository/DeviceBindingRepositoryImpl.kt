@@ -1,6 +1,5 @@
 package com.pergamino.data.repository
 
-import com.pergamino.data.crypto.EcdsaKeyManager
 import com.pergamino.data.local.SecureDeviceStorage
 import com.pergamino.data.network.DeviceBindingService
 import com.pergamino.data.network.model.request.DeviceBindingRequest
@@ -12,26 +11,20 @@ import javax.inject.Singleton
 @Singleton
 class DeviceBindingRepositoryImpl @Inject constructor(
     private val apiService: DeviceBindingService,
-    private val keyManager: EcdsaKeyManager,
     private val secureStorage: SecureDeviceStorage
 ) : DeviceBindingRepository {
 
     override suspend fun verifyBinding(token: JwtToken): Result<DeviceBindingResult> = runCatching {
-        val publicKey = keyManager.generateKeyPair().getOrThrow()
-
-        val request = DeviceBindingRequest(
-            token = token.value,
-            publicKey = publicKey.value
-        )
-
+        val request = DeviceBindingRequest(token = token.value)
         val response = apiService.verifyBinding(request)
 
         val deviceId = DeviceId.fromString(response.deviceId).getOrThrow()
+        val jwtToken = JwtToken.fromString(response.jwtToken).getOrThrow()
 
         secureStorage.storeDeviceCredentials(
             deviceId = deviceId,
             email = response.email,
-            publicKey = publicKey
+            jwtToken = jwtToken
         ).getOrThrow()
 
         DeviceBindingResult(
@@ -56,6 +49,5 @@ class DeviceBindingRepositoryImpl @Inject constructor(
 
     override suspend fun clearCredentials(): Result<Unit> = runCatching {
         secureStorage.clearCredentials().getOrThrow()
-        keyManager.deleteKeyPair().getOrThrow()
     }
 }

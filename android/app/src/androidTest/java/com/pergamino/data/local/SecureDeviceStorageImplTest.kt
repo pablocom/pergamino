@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.pergamino.domain.model.DeviceId
-import com.pergamino.domain.model.PublicKey
+import com.pergamino.domain.model.JwtToken
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,13 +18,11 @@ class SecureDeviceStorageImplTest {
 
     private lateinit var storage: SecureDeviceStorageImpl
     private lateinit var context: Context
-    private lateinit var encryptionHelper: AesEncryptionHelper
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        encryptionHelper = AesEncryptionHelper()
-        storage = SecureDeviceStorageImpl(context, encryptionHelper)
+        storage = SecureDeviceStorageImpl(context)
         storage.clearCredentials()
     }
 
@@ -37,9 +35,9 @@ class SecureDeviceStorageImplTest {
     fun storeDeviceCredentials_savesAllFields() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
 
-        val result = storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val result = storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
         assertTrue(result.isSuccess)
     }
@@ -48,8 +46,8 @@ class SecureDeviceStorageImplTest {
     fun getDeviceId_returnsStoredDeviceId() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
         val result = storage.getDeviceId()
 
@@ -61,8 +59,8 @@ class SecureDeviceStorageImplTest {
     fun getEmail_returnsStoredEmail() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
         val result = storage.getEmail()
 
@@ -71,16 +69,16 @@ class SecureDeviceStorageImplTest {
     }
 
     @Test
-    fun getPublicKey_returnsStoredPublicKey() {
+    fun getJwtToken_returnsStoredJwtToken() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
-        val result = storage.getPublicKey()
+        val result = storage.getJwtToken()
 
         assertTrue(result.isSuccess)
-        assertEquals(publicKey.value, result.getOrThrow().value)
+        assertEquals(jwtToken.value, result.getOrThrow().value)
     }
 
     @Test
@@ -94,8 +92,8 @@ class SecureDeviceStorageImplTest {
     fun hasCredentials_returnsTrueAfterStoring() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
         val hasCredentials = storage.hasCredentials()
 
@@ -106,29 +104,29 @@ class SecureDeviceStorageImplTest {
     fun clearCredentials_removesAllData() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
         storage.clearCredentials()
 
         assertFalse(storage.hasCredentials())
         assertTrue(storage.getDeviceId().isFailure)
         assertTrue(storage.getEmail().isFailure)
-        assertTrue(storage.getPublicKey().isFailure)
+        assertTrue(storage.getJwtToken().isFailure)
     }
 
     @Test
     fun credentials_persistAcrossStorageInstanceRecreation() {
         val deviceId = DeviceId.random()
         val email = "test@example.com"
-        val publicKey = PublicKey.fromByteArray(ByteArray(65) { it.toByte() })
-        storage.storeDeviceCredentials(deviceId, email, publicKey)
+        val jwtToken = JwtToken.fromString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U").getOrThrow()
+        storage.storeDeviceCredentials(deviceId, email, jwtToken)
 
-        val newStorage = SecureDeviceStorageImpl(context, encryptionHelper)
+        val newStorage = SecureDeviceStorageImpl(context)
 
         assertTrue(newStorage.hasCredentials())
         assertEquals(deviceId, newStorage.getDeviceId().getOrThrow())
         assertEquals(email, newStorage.getEmail().getOrThrow())
-        assertEquals(publicKey.value, newStorage.getPublicKey().getOrThrow().value)
+        assertEquals(jwtToken.value, newStorage.getJwtToken().getOrThrow().value)
     }
 }

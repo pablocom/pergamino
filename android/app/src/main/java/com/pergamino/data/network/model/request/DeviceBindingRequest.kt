@@ -4,6 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeviceBindingRequest(
-    val token: String,
-    val publicKey: String
+    val token: String
 )

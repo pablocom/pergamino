@@ -2,6 +2,7 @@ package com.pergamino.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.pergamino.BuildConfig
+import com.pergamino.data.network.AuthInterceptor
 import com.pergamino.data.network.DeviceBindingService
 import dagger.Module
 import dagger.Provides
@@ -27,8 +28,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = if (BuildConfig.DEBUG) {
