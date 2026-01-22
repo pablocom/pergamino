@@ -1,16 +1,16 @@
-defmodule Pergamino.Application.DeviceBindingTest do
+defmodule Pergamino.Application.VerificationEmailTest do
   use ExUnit.Case, async: false
 
   import Swoosh.TestAssertions
 
-  alias Pergamino.Application.DeviceBinding
+  alias Pergamino.Application.VerificationEmail
   alias Pergamino.Infrastructure.Auth.TokenGenerator
 
-  describe "send_binding_link/1" do
-    test "sends device binding email with deeplink containing valid token" do
+  describe "send/1" do
+    test "sends verification email with deeplink containing valid token" do
       email_string = "test@example.com"
 
-      assert :ok = DeviceBinding.send_binding_link(email_string)
+      assert :ok = VerificationEmail.send(email_string)
 
       assert_email_sent(fn sent_email ->
         [_, token_part] = String.split(sent_email.text_body, "pergamino://bind?token=")
@@ -25,17 +25,17 @@ defmodule Pergamino.Application.DeviceBindingTest do
     end
 
     test "returns error for invalid email format" do
-      assert {:error, :invalid_email} = DeviceBinding.send_binding_link("not-an-email")
+      assert {:error, :invalid_email} = VerificationEmail.send("not-an-email")
       assert_no_email_sent()
     end
 
     test "returns error for empty email" do
-      assert {:error, :invalid_email} = DeviceBinding.send_binding_link("")
+      assert {:error, :invalid_email} = VerificationEmail.send("")
       assert_no_email_sent()
     end
 
     test "normalizes email to lowercase before sending" do
-      DeviceBinding.send_binding_link("Test@Example.COM")
+      VerificationEmail.send("Test@Example.COM")
 
       assert_email_sent(fn sent_email ->
         sent_email.to == [{"", "test@example.com"}]

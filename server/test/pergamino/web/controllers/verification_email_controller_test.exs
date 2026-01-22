@@ -1,11 +1,11 @@
-defmodule Pergamino.Web.Controllers.DeviceBindingTest do
+defmodule Pergamino.Web.Controllers.VerificationEmailTest do
   use Pergamino.ConnCase
 
   import Swoosh.TestAssertions
 
-  describe "POST /api/device-binding-link" do
-    test "sends email and returns 202 for valid email", %{conn: conn} do
-      conn = post(conn, ~p"/api/device-binding-link", %{"email" => "test@example.com"})
+  describe "POST /api/verification-emails" do
+    test "sends email and returns 202", %{conn: conn} do
+      conn = post(conn, ~p"/api/verification-emails", %{"email" => "test@example.com"})
 
       assert conn.status == 202
       assert conn.resp_body == ""
@@ -22,22 +22,22 @@ defmodule Pergamino.Web.Controllers.DeviceBindingTest do
       end)
     end
 
-    test "returns Problem Details when email parameter is missing", %{conn: conn} do
-      conn = post(conn, ~p"/api/device-binding-link", %{})
+    test "returns an error when email parameter is missing", %{conn: conn} do
+      conn = post(conn, ~p"/api/verification-emails", %{})
 
       assert_validation_error(
         conn,
         "Email parameter is required",
-        "/api/device-binding-link"
+        "/api/verification-emails"
       )
 
       assert_no_email_sent()
     end
 
-    test "returns Problem Details when email format is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/api/device-binding-link", %{"email" => "not-an-email"})
+    test "returns an error when email format is invalid", %{conn: conn} do
+      conn = post(conn, ~p"/api/verification-emails", %{"email" => "not-an-email"})
 
-      assert_validation_error(conn, "Email format is invalid", "/api/device-binding-link")
+      assert_validation_error(conn, "Email format is invalid", "/api/verification-emails")
       assert_no_email_sent()
     end
   end

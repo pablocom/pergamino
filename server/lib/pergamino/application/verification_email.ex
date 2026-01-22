@@ -1,13 +1,13 @@
-defmodule Pergamino.Application.DeviceBinding do
+defmodule Pergamino.Application.VerificationEmail do
   alias Pergamino.Domain.EmailAddress
   alias Pergamino.Infrastructure.Auth.TokenGenerator
   alias Pergamino.Infrastructure.Messaging.EmailSender
 
-  @spec send_binding_link(String.t()) :: :ok | {:error, atom()}
-  def send_binding_link(email_string) do
+  @spec send(String.t()) :: :ok | {:error, atom()}
+  def send(email_string) do
     with {:ok, email} <- EmailAddress.create(email_string),
          {:ok, token} <- TokenGenerator.generate(email),
-         {:ok, _} <- EmailSender.send_device_binding_email(email, build_deeplink(token)) do
+         {:ok, _} <- EmailSender.send_verification_email(email, build_deeplink(token)) do
       :ok
     else
       {:error, :invalid_email} ->

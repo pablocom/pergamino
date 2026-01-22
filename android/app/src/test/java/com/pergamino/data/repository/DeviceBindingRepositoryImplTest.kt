@@ -13,6 +13,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.check
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -38,7 +40,7 @@ class DeviceBindingRepositoryImplTest {
 
     @Test
     fun `verifyBinding sends correct request to API`() = runTest {
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(validDeviceId.toString(), validEmail, validAuthToken.value)
         )
         whenever(secureStorage.storeDeviceCredentials(any(), any(), any())).thenReturn(Result.success(Unit))
@@ -46,12 +48,12 @@ class DeviceBindingRepositoryImplTest {
         repository.verifyBinding(validVerificationToken)
 
         val expectedRequest = DeviceBindingRequest(token = validVerificationToken.value)
-        verify(apiService).verifyBinding(expectedRequest)
+        verify(apiService).verifyBinding(eq(expectedRequest), any())
     }
 
     @Test
     fun `verifyBinding stores credentials on success`() = runTest {
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(validDeviceId.toString(), validEmail, validAuthToken.value)
         )
         whenever(secureStorage.storeDeviceCredentials(any(), any(), any())).thenReturn(Result.success(Unit))
@@ -59,15 +61,15 @@ class DeviceBindingRepositoryImplTest {
         repository.verifyBinding(validVerificationToken)
 
         verify(secureStorage).storeDeviceCredentials(
-            deviceId = any(),
-            email = validEmail,
-            jwtToken = any()
+            any(),
+            check { assertEquals(validEmail, it) },
+            any()
         )
     }
 
     @Test
     fun `verifyBinding returns DeviceBindingResult on success`() = runTest {
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(validDeviceId.toString(), validEmail, validAuthToken.value)
         )
         whenever(secureStorage.storeDeviceCredentials(any(), any(), any())).thenReturn(Result.success(Unit))
@@ -83,7 +85,7 @@ class DeviceBindingRepositoryImplTest {
     @Test
     fun `verifyBinding returns failure when API call fails`() = runTest {
         val apiException = RuntimeException("API error")
-        whenever(apiService.verifyBinding(any())).thenThrow(apiException)
+        whenever(apiService.verifyBinding(any(), any())).thenThrow(apiException)
 
         val result = repository.verifyBinding(validVerificationToken)
 
@@ -94,7 +96,7 @@ class DeviceBindingRepositoryImplTest {
     @Test
     fun `verifyBinding returns failure when storage fails`() = runTest {
         val storageException = Exception("Storage error")
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(validDeviceId.toString(), validEmail, validAuthToken.value)
         )
         whenever(secureStorage.storeDeviceCredentials(any(), any(), any())).thenReturn(Result.failure(storageException))
@@ -107,7 +109,7 @@ class DeviceBindingRepositoryImplTest {
     @Test
     fun `verifyBinding handles invalid deviceId from backend`() = runTest {
         val invalidDeviceId = "invalid-uuid-format"
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(invalidDeviceId, validEmail, validAuthToken.value)
         )
 
@@ -118,7 +120,7 @@ class DeviceBindingRepositoryImplTest {
 
     @Test
     fun `verifyBinding handles invalid JWT token from backend`() = runTest {
-        whenever(apiService.verifyBinding(any())).thenReturn(
+        whenever(apiService.verifyBinding(any(), any())).thenReturn(
             DeviceBindingResponse(validDeviceId.toString(), validEmail, "invalid-jwt")
         )
 

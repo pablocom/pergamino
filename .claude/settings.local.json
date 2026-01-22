@@ -33,7 +33,11 @@
       "Bash(./gradlew assembleDebug:*)",
       "Bash(ls -la \"C:\\\\src\\\\pergamino\\\\android\\\\app\\\\src\\\\test\"\" 2>/dev/null || echo \"test directory info \")",
       "Bash(gradlew.bat testDebugUnitTest:*)",
-      "Bash($env:JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\")"
+      "Bash($env:JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\")",
+      "Bash(./gradlew testDebugUnitTest:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew testDebugUnitTest:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew test:*)",
+      "Bash(./gradlew test:*)"
     ]
   }
 }

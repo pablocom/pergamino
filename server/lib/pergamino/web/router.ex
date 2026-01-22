@@ -15,7 +15,7 @@ defmodule Pergamino.Web.Router do
   scope "/api", Pergamino.Web do
     pipe_through(:api)
 
-    post("/device-binding-link", Controllers.DeviceBinding, :create)
+    post("/verification-emails", Controllers.VerificationEmail, :create)
   end
 
   if Application.compile_env(:pergamino, :dev_routes) do

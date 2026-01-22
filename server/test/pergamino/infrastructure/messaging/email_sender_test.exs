@@ -6,12 +6,12 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSenderTest do
   alias Pergamino.Domain.EmailAddress
   alias Pergamino.Infrastructure.Messaging.EmailSender
 
-  describe "send_device_binding_email/2" do
+  describe "send_verification_email/2" do
     test "sends email with deeplink to recipient" do
       {:ok, email} = EmailAddress.create("test@example.com")
       deeplink = "pergamino://bind?token=abc123"
 
-      assert {:ok, _metadata} = EmailSender.send_device_binding_email(email, deeplink)
+      assert {:ok, _metadata} = EmailSender.send_verification_email(email, deeplink)
 
       assert_email_sent(fn sent_email ->
         sent_email.to == [{"", "test@example.com"}] and
@@ -25,7 +25,7 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSenderTest do
       {:ok, email} = EmailAddress.create("user@domain.com")
       deeplink = "pergamino://bind?token=xyz789"
 
-      EmailSender.send_device_binding_email(email, deeplink)
+      EmailSender.send_verification_email(email, deeplink)
 
       assert_email_sent(fn sent_email ->
         String.contains?(sent_email.text_body, "Click the link below") and
@@ -37,7 +37,7 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSenderTest do
       {:ok, email} = EmailAddress.create("Test@Example.COM")
       deeplink = "pergamino://bind?token=token123"
 
-      EmailSender.send_device_binding_email(email, deeplink)
+      EmailSender.send_verification_email(email, deeplink)
 
       assert_email_sent(fn sent_email ->
         sent_email.to == [{"", "test@example.com"}]

@@ -53,11 +53,17 @@ class DeviceBindingViewModelTest {
 
     @Test
     fun `resetState returns to Idle`() = runTest {
+        val email = "test@example.com"
+        val deviceId = DeviceId.random()
+        val result = DeviceBindingResult(deviceId, email)
+        whenever(repository.verifyBinding(any())).thenReturn(Result.success(result))
+
         viewModel.uiState.test {
             assertEquals(DeviceBindingUiState.Idle, awaitItem())
 
             viewModel.verifyBindingToken("valid.jwt.token")
             assertEquals(DeviceBindingUiState.Verifying, awaitItem())
+            skipItems(1)
 
             viewModel.resetState()
             assertEquals(DeviceBindingUiState.Idle, awaitItem())

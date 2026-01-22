@@ -1,13 +1,13 @@
-defmodule Pergamino.Web.Controllers.DeviceBinding do
+defmodule Pergamino.Web.Controllers.VerificationEmail do
   use Pergamino, :controller
 
-  alias Pergamino.Application.DeviceBinding
+  alias Pergamino.Application.VerificationEmail
 
   action_fallback(Pergamino.Web.ErrorHandler)
 
   def create(conn, params) do
     with {:ok, email_string} <- fetch_email_param(params),
-         :ok <- DeviceBinding.send_binding_link(email_string) do
+         :ok <- VerificationEmail.send(email_string) do
       send_resp(conn, 202, "")
     end
   end

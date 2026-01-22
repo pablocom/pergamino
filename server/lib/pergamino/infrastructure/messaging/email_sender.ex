@@ -4,16 +4,16 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSender do
 
   alias Pergamino.Domain.EmailAddress
 
-  @spec send_device_binding_email(EmailAddress.t(), String.t()) ::
+  @spec send_verification_email(EmailAddress.t(), String.t()) ::
           {:ok, term()} | {:error, term()}
-  def send_device_binding_email(%EmailAddress{} = recipient, deeplink) do
+  def send_verification_email(%EmailAddress{} = recipient, deeplink) do
     recipient
-    |> build_device_binding_email(deeplink)
+    |> build_verification_email(deeplink)
     |> deliver()
   end
 
-  @spec build_device_binding_email(EmailAddress.t(), String.t()) :: Swoosh.Email.t()
-  defp build_device_binding_email(%EmailAddress{} = recipient, deeplink) do
+  @spec build_verification_email(EmailAddress.t(), String.t()) :: Swoosh.Email.t()
+  defp build_verification_email(%EmailAddress{} = recipient, deeplink) do
     body = """
     Click the link below to complete device binding:
 

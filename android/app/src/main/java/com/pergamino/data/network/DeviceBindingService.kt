@@ -9,7 +9,7 @@ import retrofit2.http.Tag
 
 interface DeviceBindingService {
 
-    @POST("/api/device-binding-link")
+    @POST("/api/verification-emails")
     suspend fun requestVerificationEmail(
         @Body request: VerificationRequest,
         @Tag skipAuth: String = AuthInterceptor.TAG_SKIP_AUTH

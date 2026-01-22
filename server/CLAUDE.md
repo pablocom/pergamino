@@ -26,10 +26,10 @@ mix phx.server
 mix test
 
 # Run a specific test file
-mix test test/pergamino/web/controllers/device_binding_controller_test.exs
+mix test test/pergamino/web/controllers/verification_email_controller_test.exs
 
 # Run a specific test (by line number)
-mix test test/pergamino/web/controllers/device_binding_controller_test.exs:5
+mix test test/pergamino/web/controllers/verification_email_controller_test.exs:5
 
 # Run tests with coverage
 mix test --cover
@@ -46,7 +46,7 @@ The codebase follows clean architecture principles with clear layer separation:
   - No dependencies on infrastructure or frameworks
 
 - **Application Layer** (`lib/pergamino/application/`): Application services orchestrating use cases
-  - Services: `Pergamino.Application.DeviceBinding`
+  - Services: `Pergamino.Application.VerificationEmail`
   - Coordinates domain objects and infrastructure adapters
   - Contains business workflows
 
@@ -78,8 +78,7 @@ lib/pergamino/
   ├── domain/
   │   └── email_address.ex                    # EmailAddress value object
   ├── application/
-  │   └── device_binding/
-  │       └── device_binding.ex               # DeviceBinding application service
+  │   └── verification_email.ex               # VerificationEmail application service
   ├── infrastructure/
   │   ├── auth/
   │   │   └── token_generator.ex              # JWT token generation adapter
@@ -92,7 +91,7 @@ lib/pergamino/
       ├── error_handler.ex                    # Error response handler
       ├── problem_details.ex                  # RFC 7807 Problem Details
       └── controllers/
-          ├── device_binding.ex               # Device binding controller
+          ├── verification_email.ex           # Verification email controller
           ├── error_json.ex                   # Error JSON responses
           └── fallback.ex                     # Fallback controller
 
@@ -133,7 +132,7 @@ Pergamino.Supervisor (one_for_one)
 
 The device binding flow enables secure device registration:
 
-1. **Initiate Binding** (POST `/api/device-binding-link`):
+1. **Send Verification Email** (POST `/api/verification-emails`):
    - User submits email address
    - System validates email using `Pergamino.Domain.EmailAddress` value object
    - Generates JWT binding token via `Pergamino.Infrastructure.Auth.TokenGenerator`
@@ -143,7 +142,7 @@ The device binding flow enables secure device registration:
 
 2. **Flow Architecture**:
    - Controller validates request and generates JWT token
-   - Controller delegates to `Pergamino.Application.DeviceBinding.send_binding_link/2`
+   - Controller delegates to `Pergamino.Application.VerificationEmail.send/1`
    - Application service creates EmailAddress value object and orchestrates email sending
    - Infrastructure adapters handle external concerns (JWT, email delivery)
    - Error responses follow RFC 7807 Problem Details format
@@ -167,7 +166,7 @@ The device binding flow enables secure device registration:
 - Located in `lib/pergamino/application/<context>/`
 - Receive primitive types (strings, etc.) and infrastructure-generated tokens
 - Coordinate domain objects and infrastructure adapters
-- Example: `Pergamino.Application.DeviceBinding.send_binding_link/2`
+- Example: `Pergamino.Application.VerificationEmail.send/1`
 
 **Infrastructure Adapters**: Implement external integrations
 - Located in `lib/pergamino/infrastructure/`

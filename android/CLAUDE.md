@@ -1,6 +1,11 @@
 # CLAUDE.md - Pergamino Android Project
 
+
+
 ## Commands
+
+> As a prerequisite JAVA_HOME environment variable must be present. Example to set up in Windows and Powershell: `$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`
+
 - **Build Debug**: `./gradlew assembleDebug`
 - **Run Unit Tests**: `./gradlew testDebugUnitTest`
 - **Run Lint**: `./gradlew lintDebug`
