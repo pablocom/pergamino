@@ -3,7 +3,7 @@ defmodule Pergamino.Web.Controllers.DeviceBinding do
 
   alias Pergamino.Application.DeviceBinding
 
-  action_fallback(Pergamino.Web.Controllers.Fallback)
+  action_fallback(Pergamino.Web.ErrorHandler)
 
   def create(conn, params) do
     with {:ok, email_string} <- fetch_email_param(params),

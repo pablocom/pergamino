@@ -1,12 +1,11 @@
 defmodule Pergamino.Web.ErrorHandler do
-  import Plug.Conn
-  import Phoenix.Controller
+  use Pergamino, :controller
 
   alias Pergamino.Web.ProblemDetails
   require Logger
 
-  @spec handle_error(Plug.Conn.t(), any()) :: Plug.Conn.t()
-  def handle_error(conn, {:error, error_code}) when is_atom(error_code) do
+  @spec call(Plug.Conn.t(), any()) :: Plug.Conn.t()
+  def call(conn, {:error, error_code}) when is_atom(error_code) do
     case error_mapping(error_code) do
       {:ok, status, problem_details_code} ->
         render_problem_details(conn, status, problem_details_code)
@@ -16,7 +15,7 @@ defmodule Pergamino.Web.ErrorHandler do
     end
   end
 
-  def handle_error(conn, error) do
+  def call(conn, error) do
     handle_unknown_error(conn, error)
   end
 
