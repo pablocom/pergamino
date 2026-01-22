@@ -63,7 +63,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.tink.android)
-    implementation(libs.protobuf.javalite)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
