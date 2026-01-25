@@ -16,6 +16,8 @@ defmodule Pergamino.Web.Router do
     pipe_through(:api)
 
     post("/verification-emails", Controllers.VerificationEmail, :create)
+    post("/token", Controllers.Token, :exchange)
+    post("/token/refresh", Controllers.Token, :refresh)
   end
 
   if Application.compile_env(:pergamino, :dev_routes) do

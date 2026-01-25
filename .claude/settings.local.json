@@ -37,7 +37,8 @@
       "Bash(./gradlew testDebugUnitTest:*)",
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew testDebugUnitTest:*)",
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew test:*)",
-      "Bash(./gradlew test:*)"
+      "Bash(./gradlew test:*)",
+      "Bash(docker-compose up:*)"
     ]
   }
 }

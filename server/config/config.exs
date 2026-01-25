@@ -29,4 +29,8 @@ config :swoosh, :api_client, Swoosh.ApiClient.Finch
 
 config :phoenix, :json_library, Jason
 
+config :pergamino, :redis,
+  pool_size: 10,
+  url: "redis://localhost:6379/0"
+
 import_config "#{config_env()}.exs"

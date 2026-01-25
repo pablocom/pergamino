@@ -5,12 +5,15 @@ defmodule Pergamino.Application do
 
   @impl true
   def start(_type, _args) do
+    redis_url = Application.fetch_env!(:pergamino, :redis) |> Keyword.fetch!(:url)
+
     children = [
       Pergamino.Web.Telemetry,
       {DNSCluster, query: Application.get_env(:pergamino, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pergamino.PubSub},
       {Finch, name: Pergamino.Finch},
       Pergamino.Infrastructure.Auth.TokenGenerator.SignerLoader,
+      {Redix, {redis_url, [name: :redix]}},
       Pergamino.Web.Endpoint
     ]
 

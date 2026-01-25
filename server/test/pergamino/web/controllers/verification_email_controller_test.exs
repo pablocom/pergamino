@@ -3,41 +3,81 @@ defmodule Pergamino.Web.Controllers.VerificationEmailTest do
 
   import Swoosh.TestAssertions
 
+  setup do
+    verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+
+    challenge =
+      :crypto.hash(:sha256, verifier)
+      |> Base.url_encode64(padding: false)
+
+    %{verifier: verifier, challenge: challenge}
+  end
+
   describe "POST /api/verification-emails" do
-    test "sends email and returns 202", %{conn: conn} do
-      conn = post(conn, ~p"/api/verification-emails", %{"email" => "test@example.com"})
+    test "sends email and returns 202", %{conn: conn, challenge: challenge} do
+      params = %{
+        "email" => "test@example.com",
+        "code_challenge" => challenge
+      }
+
+      conn = post(conn, ~p"/api/verification-emails", params)
 
       assert conn.status == 202
       assert conn.resp_body == ""
 
       assert_email_sent(fn sent_email ->
-        [_, token_part] = String.split(sent_email.text_body, "pergamino://bind?token=")
-        token = String.trim(token_part)
-        {:ok, claims} = Pergamino.Infrastructure.Auth.TokenGenerator.verify(token)
-
         sent_email.to == [{"", "test@example.com"}] and
           sent_email.subject == "Complete Your Device Setup" and
-          String.contains?(sent_email.text_body, "pergamino://bind?token=") and
-          claims["email"] == "test@example.com"
+          String.contains?(sent_email.text_body, "pergamino://bind?code=")
       end)
     end
 
-    test "returns an error when email parameter is missing", %{conn: conn} do
-      conn = post(conn, ~p"/api/verification-emails", %{})
+    test "returns an error when email parameter is missing", %{conn: conn, challenge: challenge} do
+      params = %{
+        "code_challenge" => challenge
+      }
 
-      assert_validation_error(
-        conn,
-        "Email parameter is required",
-        "/api/verification-emails"
-      )
+      conn = post(conn, ~p"/api/verification-emails", params)
+
+      assert %{
+               "type" => "https://pergamino.app/errors/missing-email",
+               "detail" => "Email parameter is required",
+               "status" => 400
+             } = json_response(conn, 400)
 
       assert_no_email_sent()
     end
 
-    test "returns an error when email format is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/api/verification-emails", %{"email" => "not-an-email"})
+    test "returns an error when code_challenge is missing", %{conn: conn} do
+      params = %{
+        "email" => "test@example.com"
+      }
 
-      assert_validation_error(conn, "Email format is invalid", "/api/verification-emails")
+      conn = post(conn, ~p"/api/verification-emails", params)
+
+      assert %{
+               "type" => "https://pergamino.app/errors/missing-code-challenge",
+               "detail" => "Code challenge parameter is required",
+               "status" => 400
+             } = json_response(conn, 400)
+
+      assert_no_email_sent()
+    end
+
+    test "returns an error when email format is invalid", %{conn: conn, challenge: challenge} do
+      params = %{
+        "email" => "not-an-email",
+        "code_challenge" => challenge
+      }
+
+      conn = post(conn, ~p"/api/verification-emails", params)
+
+      assert %{
+               "type" => "https://pergamino.app/errors/invalid-email-format",
+               "detail" => "Email format is invalid",
+               "status" => 400
+             } = json_response(conn, 400)
+
       assert_no_email_sent()
     end
   end

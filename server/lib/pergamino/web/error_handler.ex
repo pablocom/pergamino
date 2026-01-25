@@ -23,8 +23,17 @@ defmodule Pergamino.Web.ErrorHandler do
     case error_code do
       :missing_email -> {:ok, 400, :missing_email}
       :invalid_email -> {:ok, 400, :invalid_email_format}
+      :missing_code_challenge -> {:ok, 400, :missing_code_challenge}
+      :missing_code_challenge_method -> {:ok, 400, :missing_code_challenge_method}
+      :invalid_pkce_parameters -> {:ok, 400, :invalid_pkce_parameters}
+      :missing_code -> {:ok, 400, :missing_code}
+      :missing_code_verifier -> {:ok, 400, :missing_code_verifier}
+      :invalid_authorization_code -> {:ok, 400, :invalid_authorization_code}
+      :missing_refresh_token -> {:ok, 400, :missing_refresh_token}
+      :invalid_refresh_token -> {:ok, 400, :invalid_refresh_token}
       :token_generation_failed -> {:ok, 500, :internal_server_error}
       :email_delivery_failed -> {:ok, 503, :service_unavailable}
+      :service_unavailable -> {:ok, 503, :service_unavailable}
       :not_implemented -> {:ok, 501, :not_implemented}
       _ -> :unknown
     end

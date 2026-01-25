@@ -14,3 +14,7 @@ config :phoenix, :plug_init_mode, :runtime
 config :phoenix, sort_verified_routes_query_params: true
 
 config :pergamino, jwt_secret_key: "test_secret_key_123"
+
+config :pergamino, :redis,
+  pool_size: 2,
+  url: System.get_env("REDIS_URL", "redis://localhost:6379/1")

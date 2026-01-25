@@ -42,6 +42,7 @@ defmodule Pergamino.MixProject do
       {:joken, "~> 2.6"},
       {:swoosh, "~> 1.16"},
       {:finch, "~> 0.16"},
+      {:redix, "~> 1.5"},
       {:mox, "~> 1.0", only: :test}
     ]
   end
