@@ -26,7 +26,9 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
 
     case Redix.command(:redix, ["SETEX", key, ttl_seconds, value]) do
       {:ok, "OK"} -> :ok
-      {:error, _reason} -> {:error, :redis_unavailable}
+      {:error, reason} -> 
+        IO.inspect(reason, label: "Redix command failed")
+        {:error, :redis_unavailable}
     end
   end
 
