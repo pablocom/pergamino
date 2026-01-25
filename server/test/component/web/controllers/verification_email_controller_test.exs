@@ -1,20 +1,14 @@
-defmodule Pergamino.Web.Controllers.VerificationEmailTest do
+defmodule Component.Web.Controllers.VerificationEmailTest do
   use Pergamino.ConnCase
 
   import Swoosh.TestAssertions
 
-  setup do
-    verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-
-    challenge =
-      :crypto.hash(:sha256, verifier)
-      |> Base.url_encode64(padding: false)
-
-    %{verifier: verifier, challenge: challenge}
-  end
+  @pkce_verifier "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
   describe "POST /api/verification-emails" do
-    test "sends email and returns 202", %{conn: conn, challenge: challenge} do
+    test "sends email and returns 202", %{conn: conn} do
+      challenge = create_challenge(@pkce_verifier)
+
       params = %{
         "email" => "test@example.com",
         "code_challenge" => challenge
@@ -32,7 +26,9 @@ defmodule Pergamino.Web.Controllers.VerificationEmailTest do
       end)
     end
 
-    test "returns an error when email parameter is missing", %{conn: conn, challenge: challenge} do
+    test "returns an error when email parameter is missing", %{conn: conn} do
+      challenge = create_challenge(@pkce_verifier)
+
       params = %{
         "code_challenge" => challenge
       }
@@ -64,7 +60,9 @@ defmodule Pergamino.Web.Controllers.VerificationEmailTest do
       assert_no_email_sent()
     end
 
-    test "returns an error when email format is invalid", %{conn: conn, challenge: challenge} do
+    test "returns an error when email format is invalid", %{conn: conn} do
+      challenge = create_challenge(@pkce_verifier)
+
       params = %{
         "email" => "not-an-email",
         "code_challenge" => challenge
@@ -80,5 +78,10 @@ defmodule Pergamino.Web.Controllers.VerificationEmailTest do
 
       assert_no_email_sent()
     end
+  end
+
+  defp create_challenge(verifier) do
+    :crypto.hash(:sha256, verifier)
+    |> Base.url_encode64(padding: false)
   end
 end

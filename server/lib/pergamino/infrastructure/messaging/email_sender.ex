@@ -1,4 +1,6 @@
 defmodule Pergamino.Infrastructure.Messaging.EmailSender do
+  @behaviour Pergamino.Infrastructure.Messaging.EmailSenderBehaviour
+
   use Swoosh.Mailer, otp_app: :pergamino
   import Swoosh.Email
 

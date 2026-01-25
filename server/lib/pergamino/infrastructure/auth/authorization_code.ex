@@ -1,4 +1,6 @@
-defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeGenerator do
+defmodule Pergamino.Infrastructure.Auth.AuthorizationCode do
+  alias Pergamino.Core.Clock
+
   @code_length 32
   @expiration_seconds 300
 
@@ -15,7 +17,7 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeGenerator do
   end
 
   defp expiration_time do
-    DateTime.utc_now()
+    Clock.utc_now()
     |> DateTime.add(@expiration_seconds, :second)
   end
 end

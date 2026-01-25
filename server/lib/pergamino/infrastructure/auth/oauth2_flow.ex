@@ -4,7 +4,7 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
   alias Pergamino.Domain.EmailAddress
 
   alias Pergamino.Infrastructure.Auth.{
-    AuthorizationCodeGenerator,
+    AuthorizationCode,
     AuthorizationCodeStore,
     TokenGenerator
   }
@@ -29,14 +29,14 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
         }
 
   @spec initiate(initiate_params()) :: :ok | {:error, atom()}
-  def initiate(%{
-        email: email_string,
-        code_challenge: challenge_string
-      }) do
+  def initiate(%{email: email_string, code_challenge: challenge_string}) do
+    code_store = code_store()
+    email_sender = email_sender()
+
     with {:ok, email} <- EmailAddress.create(email_string),
-         {code, expires_at} <- AuthorizationCodeGenerator.generate(),
-         :ok <- AuthorizationCodeStore.store(code, expires_at, email, challenge_string),
-         {:ok, _} <- EmailSender.send_verification_email(email, build_deeplink(code)) do
+         {code, expires_at} <- AuthorizationCode.generate(),
+         :ok <- code_store.store(code, expires_at, email, challenge_string),
+         {:ok, _} <- email_sender.send_verification_email(email, build_deeplink(code)) do
       :ok
     else
       {:error, :invalid_email} ->
@@ -53,7 +53,9 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
   @spec exchange_authorization_code(exchange_params()) ::
           {:ok, token_response()} | {:error, atom()}
   def exchange_authorization_code(%{code: code, code_verifier: verifier}) do
-    with {:ok, email_string, pkce_challenge} <- AuthorizationCodeStore.retrieve_and_delete(code),
+    code_store = code_store()
+
+    with {:ok, email_string, pkce_challenge} <- code_store.retrieve_and_delete(code),
          :ok <- verify_pkce(pkce_challenge, verifier),
          {:ok, email} <- EmailAddress.create(email_string),
          {:ok, access_token} <- TokenGenerator.generate(email),
@@ -91,6 +93,14 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
       {:error, _verification_error} ->
         {:error, :invalid_refresh_token}
     end
+  end
+
+  defp code_store do
+    Application.get_env(:pergamino, :authorization_code_store, AuthorizationCodeStore)
+  end
+
+  defp email_sender do
+    Application.get_env(:pergamino, :email_sender, EmailSender)
   end
 
   defp build_deeplink(code) when is_binary(code), do: "pergamino://bind?code=#{code}"

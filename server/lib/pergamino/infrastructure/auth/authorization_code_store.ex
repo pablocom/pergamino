@@ -1,5 +1,8 @@
 defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
+  @behaviour Pergamino.Infrastructure.Auth.AuthorizationCodeStoreBehaviour
+
   alias Pergamino.Domain.EmailAddress
+  alias Pergamino.Core.Clock
 
   @redis_key_prefix "auth_code:"
 
@@ -51,7 +54,7 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
   defp redis_key(code), do: "#{@redis_key_prefix}#{code}"
 
   defp calculate_ttl(expires_at) do
-    DateTime.diff(expires_at, DateTime.utc_now(), :second)
+    DateTime.diff(expires_at, Clock.utc_now(), :second)
     |> max(0)
   end
 

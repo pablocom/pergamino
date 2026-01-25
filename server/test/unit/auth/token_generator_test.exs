@@ -1,4 +1,4 @@
-defmodule Pergamino.Infrastructure.Auth.TokenGeneratorTest do
+defmodule Unit.Auth.TokenGeneratorTest do
   use ExUnit.Case, async: true
 
   alias Pergamino.Domain.EmailAddress

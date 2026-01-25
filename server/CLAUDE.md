@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Pergamino is a minimal Phoenix JSON API server implementing Ed25519-based device binding authentication. The project follows clean architecture principles with clear separation between domain logic, application services, infrastructure adapters, and web layer.
+Pergamino is a minimal Phoenix JSON API server. The project follows clean architecture principles with clear separation between domain logic, application services and infrastructure concerns.
 
 ## Development Commands
 
@@ -21,18 +21,27 @@ mix phx.server
 ```
 
 ### Testing
+
+This project uses a three-tier testing strategy. See `test/README.md` for details.
+
 ```bash
 # Run all tests
 mix test
 
+# Run only unit tests (fast, no external dependencies)
+mix test.unit
+
+# Run only integration tests (with Redis, email adapters)
+mix test.integration
+
+# Run only component tests (full HTTP stack)
+mix test.component
+
 # Run a specific test file
-mix test test/pergamino/web/controllers/verification_email_controller_test.exs
+mix test test/unit/auth/oauth2_flow_test.exs
 
 # Run a specific test (by line number)
-mix test test/pergamino/web/controllers/verification_email_controller_test.exs:5
-
-# Run tests with coverage
-mix test --cover
+mix test test/component/web/controllers/verification_email_controller_test.exs:17
 ```
 
 ## Architecture
@@ -50,10 +59,14 @@ The codebase follows clean architecture principles with clear layer separation:
   - Coordinates domain objects and infrastructure adapters
   - Contains business workflows
 
+- **Core Layer** (`lib/pergamino/core/`): Shared utilities used across all layers
+  - Time abstraction: `Pergamino.Core.Clock`
+  - Cross-cutting concerns and utilities
+
 - **Infrastructure Layer** (`lib/pergamino/infrastructure/`): External service adapters
-  - Auth adapters: `Pergamino.Infrastructure.Auth.TokenGenerator`
+  - Auth adapters: `Pergamino.Infrastructure.Auth.TokenGenerator`, `AuthorizationCode`
   - Messaging adapters: `Pergamino.Infrastructure.Messaging.EmailSender`
-  - Implements external integrations (JWT, email, etc.)
+  - Implements external integrations (JWT, email, Redis, etc.)
 
 - **Web Layer** (`lib/pergamino/web/`): HTTP interface and controllers
   - Endpoint: `Pergamino.Web.Endpoint`
@@ -62,62 +75,6 @@ The codebase follows clean architecture principles with clear layer separation:
   - Error handling: `Pergamino.Web.ErrorHandler`, `Pergamino.Web.ProblemDetails`
   - Telemetry: `Pergamino.Web.Telemetry`
 
-### Namespace Structure (IMPORTANT)
-
-This project uses `Pergamino.Web.*` namespace structure, NOT the Phoenix standard `PergaminoWeb.*`. This is an intentional architectural decision.
-
-**Critical**:
-- When adding new controllers, use `scope "/api", Pergamino.Web do` in the router
-- Controller references in routes should be `Controllers.ControllerName`
-
-### Module Organization
-
-```
-lib/pergamino.ex                              # Application supervisor + using macros
-lib/pergamino/
-  ├── domain/
-  │   └── email_address.ex                    # EmailAddress value object
-  ├── application/
-  │   └── verification_email.ex               # VerificationEmail application service
-  ├── infrastructure/
-  │   ├── auth/
-  │   │   └── token_generator.ex              # JWT token generation adapter
-  │   └── messaging/
-  │       └── email_sender.ex                 # Email sending adapter (Swoosh)
-  └── web/
-      ├── endpoint.ex                         # Phoenix endpoint
-      ├── router.ex                           # Route definitions
-      ├── telemetry.ex                        # Metrics and monitoring
-      ├── error_handler.ex                    # Error response handler
-      ├── problem_details.ex                  # RFC 7807 Problem Details
-      └── controllers/
-          ├── verification_email.ex           # Verification email controller
-          ├── error_json.ex                   # Error JSON responses
-          └── fallback.ex                     # Fallback controller
-
-test/
-  ├── support/
-  │   ├── conn_case.ex                        # Controller test helpers
-  │   └── problem_details_helpers.ex          # Problem Details assertions
-  └── pergamino/                              # Tests mirror lib structure
-      ├── domain/
-      ├── application/
-      ├── infrastructure/
-      └── web/
-```
-
-### Supervision Tree
-
-```
-Pergamino.Supervisor (one_for_one)
-├── Pergamino.Web.Telemetry
-├── DNSCluster (for distributed Erlang)
-├── Phoenix.PubSub (Pergamino.PubSub)
-├── Finch (HTTP client for Swoosh)
-├── Pergamino.Infrastructure.Auth.TokenGenerator.SignerLoader (JWT signer initialization)
-└── Pergamino.Web.Endpoint
-```
-
 ### Configuration Structure
 
 - `config/config.exs` - Base configuration for all environments
@@ -125,33 +82,6 @@ Pergamino.Supervisor (one_for_one)
 - `config/test.exs` - Test environment (`server: false`)
 - `config/prod.exs` - Production base config
 - `config/runtime.exs` - Runtime configuration (reads ENV vars)
-
-**Note**: `phoenix_live_dashboard` is available in all environments but routes are only enabled when `dev_routes: true` (development only). Development routes also include `/dev/mailbox` for Swoosh email preview.
-
-### Device Binding Architecture (Implemented)
-
-The device binding flow enables secure device registration:
-
-1. **Send Verification Email** (POST `/api/verification-emails`):
-   - User submits email address
-   - System validates email using `Pergamino.Domain.EmailAddress` value object
-   - Generates JWT binding token via `Pergamino.Infrastructure.Auth.TokenGenerator`
-   - Creates deeplink (`pergamino://bind?token=<JWT>`)
-   - Sends email with deeplink via `Pergamino.Infrastructure.Messaging.EmailSender`
-   - Returns 202 Accepted on success
-
-2. **Flow Architecture**:
-   - Controller validates request and generates JWT token
-   - Controller delegates to `Pergamino.Application.VerificationEmail.send/1`
-   - Application service creates EmailAddress value object and orchestrates email sending
-   - Infrastructure adapters handle external concerns (JWT, email delivery)
-   - Error responses follow RFC 7807 Problem Details format
-
-3. **Future: Device Verification** (Planned):
-   - Mobile app extracts JWT from deeplink
-   - Generates Ed25519 keypair
-   - POST `/api/verify-binding` with JWT + public key
-   - Server validates JWT and stores public key for signature-based auth
 
 ## Important Patterns
 
@@ -179,62 +109,10 @@ The device binding flow enables secure device registration:
 - Delegate business logic to application services
 - Handle errors via `action_fallback(Pergamino.Web.Controllers.Fallback)`
 
-### Adding New Features
-
-When adding a new bounded context:
-
-1. **Create domain structure** in `lib/pergamino/domain/`
-   - Value objects with validation
-
-2. **Create application services** in `lib/pergamino/application/<context>/`
-   - Services that orchestrate use cases
-
-3. **Create infrastructure adapters** in `lib/pergamino/infrastructure/`
-   - Implement external service integrations
-
-4. **Create controller** in `lib/pergamino/web/controllers/`
-   - Use `use Pergamino, :controller`
-   - Set `action_fallback(Pergamino.Web.Controllers.Fallback)`
-   - Delegate to application services
-
-5. **Add routes** in `lib/pergamino/web/router.ex`
-   - Under `scope "/api", Pergamino.Web do`
-   - Reference as `Controllers.ControllerName`
-
-6. **Create tests** mirroring `lib/` structure
-   - Use `Pergamino.ConnCase` for controller tests
-   - Test domain logic, application services, and infrastructure adapters separately
-
-Example (minimal controller):
-```elixir
-# lib/pergamino/web/controllers/example.ex
-defmodule Pergamino.Web.Controllers.Example do
-  use Pergamino, :controller
-  alias Pergamino.Application.ExampleContext
-  action_fallback(Pergamino.Web.Controllers.Fallback)
-
-  def create(conn, params) do
-    with {:ok, data} <- fetch_required_param(params),
-         :ok <- ExampleContext.do_something(data) do
-      send_resp(conn, 202, "")
-    end
-  end
-
-  defp fetch_required_param(%{"data" => data}), do: {:ok, data}
-  defp fetch_required_param(_), do: {:error, :missing_data}
-end
-```
-
 ### Using the elixir-architect Agent
 
-For complex Elixir tasks requiring thoughtful design and comprehensive testing, use the `elixir-architect` agent:
-
-```
-User: "I need to implement X feature"
-Assistant: [Uses Task tool with subagent_type: "elixir-architect"]
-```
-
-This agent follows TDD, SOLID principles, and provides pedagogical explanations. See `.claude/agents/elixir-architect.md` for details.
+For tasks requiring thoughtful design and comprehensive testing, use the `elixir-architect` agent.
+This agent follows TDD, SOLID principles, and provides pedagogical explanations.
 
 ## Code Style
 
@@ -249,31 +127,6 @@ Focus on:
 - Small, focused functions that do one thing
 - Proper type specifications with `@spec`
 - Well-structured code that reads like prose
-
-## What's Included and NOT Included
-
-**Included**:
-- Swoosh (email sending with Finch adapter)
-- Joken (JWT token generation/verification)
-- Mox (testing mocks)
-- LiveDashboard (development monitoring)
-
-**NOT Included**:
-- **No Ecto/Database**: In-memory state only (future: ETS/persistent_term for device keys)
-- **No HTML/LiveView**: JSON API only
-- **No static assets**: No CSS, JS, or image serving
-- **No i18n (gettext)**: Single language only
-- **No sessions/cookies**: Authentication is signature-based (planned)
-
-## CI/CD
-
-**Precommit Alias**: Run `mix precommit` locally before pushing:
-- Compile with warnings as errors
-- Check for unused dependencies
-- Format code
-- Run all tests
-
-GitHub Actions workflow not yet configured.
 
 ## Key Dependencies
 

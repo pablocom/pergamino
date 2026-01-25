@@ -1,43 +1,37 @@
-defmodule Pergamino.Web.Controllers.TokenTest do
+defmodule Component.Web.Controllers.TokenTest do
   use Pergamino.ConnCase, async: true
+
+  import RedisHelpers
 
   alias Pergamino.Domain.EmailAddress
 
   alias Pergamino.Infrastructure.Auth.{
-    AuthorizationCodeGenerator,
+    AuthorizationCode,
     AuthorizationCodeStore,
     TokenGenerator
   }
 
+  @pkce_verifier "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+
   setup do
-    {:ok, email} = EmailAddress.create("test@example.com")
-    verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+    on_exit(fn ->
+      flush_authorization_codes()
+    end)
 
-    challenge =
-      :crypto.hash(:sha256, verifier)
-      |> Base.url_encode64(padding: false)
-
-    {code, expires_at} = AuthorizationCodeGenerator.generate()
-
-    :ok = AuthorizationCodeStore.store(code, expires_at, email, challenge)
-
-    %{
-      email: email,
-      code: code,
-      verifier: verifier,
-      challenge: challenge
-    }
+    :ok
   end
 
   describe "POST /api/token" do
-    test "exchanges valid authorization code for tokens", %{
-      conn: conn,
-      code: code,
-      verifier: verifier
-    } do
+    test "exchanges valid authorization code for tokens", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
+      challenge = create_challenge(@pkce_verifier)
+
+      {code, expires_at} = AuthorizationCode.generate()
+      :ok = AuthorizationCodeStore.store(code, expires_at, email, challenge)
+
       params = %{
         "code" => code,
-        "code_verifier" => verifier
+        "code_verifier" => @pkce_verifier
       }
 
       conn = post(conn, ~p"/api/token", params)
@@ -59,10 +53,10 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert refresh_claims["typ"] == "refresh"
     end
 
-    test "returns error for invalid authorization code", %{conn: conn, verifier: verifier} do
+    test "returns error for invalid authorization code", %{conn: conn} do
       params = %{
         "code" => "invalid_code",
-        "code_verifier" => verifier
+        "code_verifier" => @pkce_verifier
       }
 
       conn = post(conn, ~p"/api/token", params)
@@ -71,7 +65,13 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/invalid-authorization-code"
     end
 
-    test "returns error for invalid code_verifier", %{conn: conn, code: code} do
+    test "returns error for invalid code_verifier", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
+      challenge = create_challenge(@pkce_verifier)
+
+      {code, expires_at} = AuthorizationCode.generate()
+      :ok = AuthorizationCodeStore.store(code, expires_at, email, challenge)
+
       params = %{
         "code" => code,
         "code_verifier" => "wrong_verifier"
@@ -83,8 +83,8 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/invalid-authorization-code"
     end
 
-    test "returns error when code is missing", %{conn: conn, verifier: verifier} do
-      params = %{"code_verifier" => verifier}
+    test "returns error when code is missing", %{conn: conn} do
+      params = %{"code_verifier" => @pkce_verifier}
 
       conn = post(conn, ~p"/api/token", params)
 
@@ -92,7 +92,13 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/missing-code"
     end
 
-    test "returns error when code_verifier is missing", %{conn: conn, code: code} do
+    test "returns error when code_verifier is missing", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
+      challenge = create_challenge(@pkce_verifier)
+
+      {code, expires_at} = AuthorizationCode.generate()
+      :ok = AuthorizationCodeStore.store(code, expires_at, email, challenge)
+
       params = %{"code" => code}
 
       conn = post(conn, ~p"/api/token", params)
@@ -101,14 +107,15 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/missing-code-verifier"
     end
 
-    test "authorization code can only be used once", %{
-      conn: conn,
-      code: code,
-      verifier: verifier
-    } do
+    test "authorization code can only be used once", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
+      challenge = create_challenge(@pkce_verifier)
+      {code, expires_at} = AuthorizationCode.generate()
+      :ok = AuthorizationCodeStore.store(code, expires_at, email, challenge)
+
       params = %{
         "code" => code,
-        "code_verifier" => verifier
+        "code_verifier" => @pkce_verifier
       }
 
       post(conn, ~p"/api/token", params)
@@ -120,7 +127,8 @@ defmodule Pergamino.Web.Controllers.TokenTest do
   end
 
   describe "POST /api/token/refresh" do
-    test "refreshes access token with valid refresh token", %{conn: conn, email: email} do
+    test "refreshes access token with valid refresh token", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
       {:ok, refresh_token} = TokenGenerator.generate_refresh_token(email)
 
       params = %{"refresh_token" => refresh_token}
@@ -173,10 +181,8 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/missing-refresh-token"
     end
 
-    test "returns error when access token is used instead of refresh token", %{
-      conn: conn,
-      email: email
-    } do
+    test "returns error when access token is used instead of refresh token", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
       {:ok, access_token} = TokenGenerator.generate(email)
 
       params = %{"refresh_token" => access_token}
@@ -185,5 +191,10 @@ defmodule Pergamino.Web.Controllers.TokenTest do
       assert %{"type" => type} = json_response(conn, 400)
       assert type == "https://pergamino.app/errors/invalid-refresh-token"
     end
+  end
+
+  defp create_challenge(verifier) do
+    :crypto.hash(:sha256, verifier)
+    |> Base.url_encode64(padding: false)
   end
 end
