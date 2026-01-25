@@ -18,17 +18,19 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
     key = redis_key(code)
     ttl_seconds = calculate_ttl(expires_at)
 
-    value =
-      Jason.encode!(%{
-        email: email,
-        code_challenge: challenge
-      })
+    if ttl_seconds > 0 do
+      value =
+        Jason.encode!(%{
+          email: email,
+          code_challenge: challenge
+        })
 
-    case Redix.command(:redix, ["SETEX", key, ttl_seconds, value]) do
-      {:ok, "OK"} -> :ok
-      {:error, reason} -> 
-        IO.inspect(reason, label: "Redix command failed")
-        {:error, :redis_unavailable}
+      case Redix.command(:redix, ["SETEX", key, ttl_seconds, value]) do
+        {:ok, "OK"} -> :ok
+        {:error, _reason} -> {:error, :redis_unavailable}
+      end
+    else
+      :ok
     end
   end
 
