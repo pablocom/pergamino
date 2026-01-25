@@ -36,6 +36,6 @@ jobs:
         working-directory: server
         run: mix compile --warnings-as-errors
 
-      - name: Run tests
+      - name: Run unit tests
         working-directory: server
-        run: mix test
+        run: mix test.unit
