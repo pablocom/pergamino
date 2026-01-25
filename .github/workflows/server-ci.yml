@@ -47,32 +47,6 @@ jobs:
         working-directory: server
         run: mix compile --warnings-as-errors
 
-      - name: Debug Environment
-        working-directory: server
-        env:
-          MIX_ENV: test
-        run: |
-          mix run -e '
-            IO.puts("\n=== DEBUG INFO ===")
-            redis_config = Application.get_env(:pergamino, :redis)
-            IO.inspect(redis_config, label: "Redis Config")
-            
-            email_config = Application.get_env(:pergamino, Pergamino.Infrastructure.Messaging.EmailSender)
-            IO.inspect(email_config, label: "Email Config")
-            
-            redis_url = redis_config[:url]
-            IO.puts("Connecting to Redis at #{redis_url}...")
-            
-            case Redix.start_link(redis_url) do
-              {:ok, conn} -> 
-                IO.inspect(Redix.command(conn, ["PING"]), label: "Redis PING")
-                Redix.stop(conn)
-              error -> 
-                IO.inspect(error, label: "Redis Connection Error")
-            end
-            IO.puts("=== END DEBUG ===\n")
-          '
-
       - name: Run unit tests
         working-directory: server
         run: mix test.unit
