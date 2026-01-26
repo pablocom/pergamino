@@ -38,10 +38,10 @@ mix test.integration
 mix test.component
 
 # Run a specific test file
-mix test test/unit/auth/oauth2_flow_test.exs
+mix test test/pergamino/unit/auth/oauth2_flow_test.exs
 
 # Run a specific test (by line number)
-mix test test/component/web/controllers/verification_email_controller_test.exs:17
+mix test test/pergamino/component/web/controllers/verification_email_controller_test.exs:17
 ```
 
 ## Architecture
