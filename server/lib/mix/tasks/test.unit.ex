@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Test.Unit do
 
   @shortdoc "Runs unit tests only"
   @moduledoc """
-  Runs only unit tests from test/unit directory.
+  Runs only unit tests from test/pergamino/unit directory.
 
   Unit tests are fast, isolated tests with no external dependencies.
   They test business logic in isolation using mocked dependencies.
@@ -15,6 +15,6 @@ defmodule Mix.Tasks.Test.Unit do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("test", ["test/unit" | args])
+    Mix.Task.run("test", ["test/pergamino/unit" | args])
   end
 end

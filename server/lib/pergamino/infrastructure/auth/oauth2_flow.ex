@@ -6,6 +6,8 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
   alias Pergamino.Infrastructure.Auth.{
     AuthorizationCode,
     AuthorizationCodeStore,
+    RefreshToken,
+    RefreshTokenStore,
     TokenGenerator
   }
 
@@ -54,18 +56,23 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
           {:ok, token_response()} | {:error, atom()}
   def exchange_authorization_code(%{code: code, code_verifier: verifier}) do
     code_store = code_store()
+    token_store = refresh_token_store()
 
     with {:ok, email_string, pkce_challenge} <- code_store.retrieve_and_delete(code),
          :ok <- verify_pkce(pkce_challenge, verifier),
          {:ok, email} <- EmailAddress.create(email_string),
          {:ok, access_token} <- TokenGenerator.generate(email),
-         {:ok, refresh_token} <- TokenGenerator.generate_refresh_token(email) do
+         {refresh_token, refresh_expires_at} <- RefreshToken.generate(),
+         :ok <- token_store.store(refresh_token, refresh_expires_at, email) do
       {:ok, build_token_response(access_token, refresh_token)}
     else
       {:error, error} when error in [:code_not_found, :invalid_code_verifier] ->
         {:error, :invalid_authorization_code}
 
       {:error, :redis_unavailable} ->
+        {:error, :service_unavailable}
+
+      {:error, :dynamodb_unavailable} ->
         {:error, :service_unavailable}
 
       {:error, :invalid_email} ->
@@ -80,23 +87,36 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
   @spec refresh_access_token(String.t()) ::
           {:ok, token_response()} | {:error, atom()}
   def refresh_access_token(refresh_token_string) do
-    with {:ok, %{"email" => email_string}} <- TokenGenerator.verify_refresh_token(refresh_token_string),
+    token_store = refresh_token_store()
+
+    with {:ok, email_string} <- token_store.retrieve_and_delete(refresh_token_string),
          {:ok, email} <- EmailAddress.create(email_string),
          {:ok, access_token} <- TokenGenerator.generate(email),
-         {:ok, new_refresh_token} <- TokenGenerator.generate_refresh_token(email) do
+         {new_refresh_token, refresh_expires_at} <- RefreshToken.generate(),
+         :ok <- token_store.store(new_refresh_token, refresh_expires_at, email) do
       {:ok, build_token_response(access_token, new_refresh_token)}
     else
-      {:error, :invalid_email} ->
-        Logger.error("Invalid email in refresh token during token refresh")
+      {:error, :token_not_found} ->
         {:error, :invalid_refresh_token}
 
-      {:error, _verification_error} ->
+      {:error, :dynamodb_unavailable} ->
+        {:error, :service_unavailable}
+
+      {:error, :invalid_email} ->
+        Logger.error("Invalid email stored in DynamoDB during token refresh")
+        {:error, :invalid_refresh_token}
+
+      {:error, _other} ->
         {:error, :invalid_refresh_token}
     end
   end
 
   defp code_store do
     Application.get_env(:pergamino, :authorization_code_store, AuthorizationCodeStore)
+  end
+
+  defp refresh_token_store do
+    Application.get_env(:pergamino, :refresh_token_store, RefreshTokenStore)
   end
 
   defp email_sender do

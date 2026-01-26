@@ -18,3 +18,17 @@ config :pergamino, jwt_secret_key: "test_secret_key_123"
 config :pergamino, :redis,
   pool_size: 2,
   url: System.get_env("REDIS_URL", "redis://localhost:6379/1")
+
+config :ex_aws,
+  access_key_id: "test",
+  secret_access_key: "test",
+  region: "us-east-1"
+
+config :ex_aws, :dynamodb,
+  scheme: "http://",
+  host: "localhost",
+  port: 8000,
+  region: "us-east-1"
+
+config :pergamino, :dynamodb,
+  refresh_tokens_table: "test_refresh_tokens"

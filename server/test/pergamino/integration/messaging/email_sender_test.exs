@@ -1,4 +1,4 @@
-defmodule Integration.Messaging.EmailSenderTest do
+defmodule Pergamino.Integration.Messaging.EmailSenderTest do
   use ExUnit.Case, async: true
 
   import Swoosh.TestAssertions

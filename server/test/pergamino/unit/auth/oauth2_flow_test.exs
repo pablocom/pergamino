@@ -1,4 +1,4 @@
-defmodule Unit.Auth.OAuth2FlowTest do
+defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
   use ExUnit.Case, async: true
 
   import Mox
@@ -6,16 +6,19 @@ defmodule Unit.Auth.OAuth2FlowTest do
   alias Pergamino.Domain.EmailAddress
   alias Pergamino.Infrastructure.Auth.OAuth2Flow
   alias Pergamino.Infrastructure.Auth.AuthorizationCodeStoreMock
+  alias Pergamino.Infrastructure.Auth.RefreshTokenStoreMock
   alias Pergamino.Infrastructure.Messaging.EmailSenderMock
 
   setup :verify_on_exit!
 
   setup do
     Application.put_env(:pergamino, :authorization_code_store, AuthorizationCodeStoreMock)
+    Application.put_env(:pergamino, :refresh_token_store, RefreshTokenStoreMock)
     Application.put_env(:pergamino, :email_sender, EmailSenderMock)
 
     on_exit(fn ->
       Application.delete_env(:pergamino, :authorization_code_store)
+      Application.delete_env(:pergamino, :refresh_token_store)
       Application.delete_env(:pergamino, :email_sender)
     end)
 
@@ -102,6 +105,13 @@ defmodule Unit.Auth.OAuth2FlowTest do
         {:ok, email, challenge}
       end)
 
+      expect(RefreshTokenStoreMock, :store, fn token, expires_at, email_obj ->
+        assert is_binary(token)
+        assert %DateTime{} = expires_at
+        assert %EmailAddress{address: ^email} = email_obj
+        :ok
+      end)
+
       params = %{code: code, code_verifier: verifier}
 
       assert {:ok, response} = OAuth2Flow.exchange_authorization_code(params)
@@ -164,14 +174,44 @@ defmodule Unit.Auth.OAuth2FlowTest do
 
       assert {:error, :service_unavailable} = OAuth2Flow.exchange_authorization_code(params)
     end
+
+    test "returns error when refresh token store is unavailable" do
+      code = "test_code"
+      verifier = "test_verifier"
+      challenge = :crypto.hash(:sha256, verifier) |> Base.url_encode64(padding: false)
+
+      expect(AuthorizationCodeStoreMock, :retrieve_and_delete, fn ^code ->
+        {:ok, "test@example.com", challenge}
+      end)
+
+      expect(RefreshTokenStoreMock, :store, fn _, _, _ ->
+        {:error, :dynamodb_unavailable}
+      end)
+
+      params = %{code: code, code_verifier: verifier}
+
+      assert {:error, :service_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+    end
   end
 
   describe "refresh_access_token/1" do
     test "successfully refreshes access token with valid refresh token" do
-      {:ok, email} = EmailAddress.create("test@example.com")
-      {:ok, refresh_token} = Pergamino.Infrastructure.Auth.TokenGenerator.generate_refresh_token(email)
+      old_token = "old_refresh_token"
+      email = "test@example.com"
 
-      assert {:ok, response} = OAuth2Flow.refresh_access_token(refresh_token)
+      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn ^old_token ->
+        {:ok, email}
+      end)
+
+      expect(RefreshTokenStoreMock, :store, fn new_token, expires_at, email_obj ->
+        assert is_binary(new_token)
+        assert new_token != old_token
+        assert %DateTime{} = expires_at
+        assert %EmailAddress{address: ^email} = email_obj
+        :ok
+      end)
+
+      assert {:ok, response} = OAuth2Flow.refresh_access_token(old_token)
 
       assert %{
                access_token: new_access_token,
@@ -182,17 +222,46 @@ defmodule Unit.Auth.OAuth2FlowTest do
 
       assert is_binary(new_access_token)
       assert is_binary(new_refresh_token)
-      assert new_refresh_token != refresh_token
+      assert new_refresh_token != old_token
     end
 
     test "returns error for invalid refresh token" do
-      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("invalid.token.here")
+      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn _ ->
+        {:error, :token_not_found}
+      end)
+
+      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("invalid_token")
     end
 
-    test "returns error for expired refresh token" do
-      expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEsImlhdCI6MX0.invalid"
+    test "returns error when token store is unavailable" do
+      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn _ ->
+        {:error, :dynamodb_unavailable}
+      end)
 
-      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token(expired_token)
+      assert {:error, :service_unavailable} = OAuth2Flow.refresh_access_token("some_token")
+    end
+
+    test "returns error when email from store is invalid" do
+      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn _ ->
+        {:ok, "not-an-email"}
+      end)
+
+      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("some_token")
+    end
+
+    test "returns error when storing new refresh token fails" do
+      old_token = "old_token"
+      email = "test@example.com"
+
+      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn ^old_token ->
+        {:ok, email}
+      end)
+
+      expect(RefreshTokenStoreMock, :store, fn _, _, _ ->
+        {:error, :dynamodb_unavailable}
+      end)
+
+      assert {:error, :service_unavailable} = OAuth2Flow.refresh_access_token(old_token)
     end
   end
 end

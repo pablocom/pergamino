@@ -1,4 +1,4 @@
-defmodule Component.Web.Controllers.VerificationEmailTest do
+defmodule Pergamino.Component.Web.Controllers.VerificationEmailTest do
   use Pergamino.ConnCase
 
   import Swoosh.TestAssertions

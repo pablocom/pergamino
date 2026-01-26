@@ -1,4 +1,4 @@
-defmodule Integration.Auth.AuthorizationCodeStoreTest do
+defmodule Pergamino.Integration.Auth.AuthorizationCodeStoreTest do
   use ExUnit.Case, async: false
 
   import RedisHelpers

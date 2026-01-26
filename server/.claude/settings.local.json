@@ -10,7 +10,22 @@
       "Bash(tree:*)",
       "Bash(dir:*)",
       "Bash(docker-compose up:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mix deps.get:*)",
+      "Bash(find:*)",
+      "Bash(mix help:*)",
+      "Bash(grep:*)",
+      "Bash(findstr:*)",
+      "Bash(mix deps.tree:*)",
+      "Bash(mix deps:*)",
+      "Bash(mix deps.clean:*)",
+      "Bash(mix test.integration:*)",
+      "Bash(mix hex.info:*)",
+      "Bash(mix deps.update:*)",
+      "Bash(curl:*)",
+      "Bash(mix hex.search:*)",
+      "WebSearch",
+      "Bash(test:*)"
     ]
   }
 }

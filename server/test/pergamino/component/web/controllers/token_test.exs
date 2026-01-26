@@ -1,21 +1,30 @@
-defmodule Component.Web.Controllers.TokenTest do
+defmodule Pergamino.Component.Web.Controllers.TokenTest do
   use Pergamino.ConnCase, async: true
 
   import RedisHelpers
+  import DynamoDBHelpers
 
   alias Pergamino.Domain.EmailAddress
 
   alias Pergamino.Infrastructure.Auth.{
     AuthorizationCode,
     AuthorizationCodeStore,
+    RefreshToken,
+    RefreshTokenStore,
     TokenGenerator
   }
 
   @pkce_verifier "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
+  setup_all do
+    ensure_refresh_tokens_table()
+    :ok
+  end
+
   setup do
     on_exit(fn ->
       flush_authorization_codes()
+      flush_refresh_tokens()
     end)
 
     :ok
@@ -48,9 +57,8 @@ defmodule Component.Web.Controllers.TokenTest do
       assert {:ok, claims} = TokenGenerator.verify(access_token)
       assert claims["email"] == "test@example.com"
       assert claims["typ"] == "access"
-      assert {:ok, refresh_claims} = TokenGenerator.verify_refresh_token(refresh_token)
-      assert refresh_claims["email"] == "test@example.com"
-      assert refresh_claims["typ"] == "refresh"
+
+      assert {:ok, "test@example.com"} = RefreshTokenStore.retrieve_and_delete(refresh_token)
     end
 
     test "returns error for invalid authorization code", %{conn: conn} do
@@ -129,7 +137,8 @@ defmodule Component.Web.Controllers.TokenTest do
   describe "POST /api/token/refresh" do
     test "refreshes access token with valid refresh token", %{conn: conn} do
       {:ok, email} = EmailAddress.create("test@example.com")
-      {:ok, refresh_token} = TokenGenerator.generate_refresh_token(email)
+      {refresh_token, expires_at} = RefreshToken.generate()
+      :ok = RefreshTokenStore.store(refresh_token, expires_at, email)
 
       params = %{"refresh_token" => refresh_token}
       conn = post(conn, ~p"/api/token/refresh", params)
@@ -147,24 +156,12 @@ defmodule Component.Web.Controllers.TokenTest do
 
       assert {:ok, claims} = TokenGenerator.verify(new_access_token)
       assert claims["email"] == "test@example.com"
-      assert {:ok, refresh_claims} = TokenGenerator.verify_refresh_token(new_refresh_token)
-      assert refresh_claims["email"] == "test@example.com"
+
+      assert {:ok, "test@example.com"} = RefreshTokenStore.retrieve_and_delete(new_refresh_token)
     end
 
     test "returns error for invalid refresh token", %{conn: conn} do
-      params = %{"refresh_token" => "invalid.token.here"}
-
-      conn = post(conn, ~p"/api/token/refresh", params)
-
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-refresh-token"
-    end
-
-    test "returns error for expired refresh token", %{conn: conn} do
-      expired_token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEsImlhdCI6MX0.invalid"
-
-      params = %{"refresh_token" => expired_token}
+      params = %{"refresh_token" => "invalid_token_string"}
 
       conn = post(conn, ~p"/api/token/refresh", params)
 
@@ -181,15 +178,44 @@ defmodule Component.Web.Controllers.TokenTest do
       assert type == "https://pergamino.app/errors/missing-refresh-token"
     end
 
-    test "returns error when access token is used instead of refresh token", %{conn: conn} do
+    test "old refresh token cannot be reused after rotation", %{conn: conn} do
       {:ok, email} = EmailAddress.create("test@example.com")
-      {:ok, access_token} = TokenGenerator.generate(email)
+      {refresh_token, expires_at} = RefreshToken.generate()
+      :ok = RefreshTokenStore.store(refresh_token, expires_at, email)
 
-      params = %{"refresh_token" => access_token}
-      conn = post(conn, ~p"/api/token/refresh", params)
+      params = %{"refresh_token" => refresh_token}
+      conn1 = post(conn, ~p"/api/token/refresh", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
+      assert %{
+               "access_token" => _access_token,
+               "refresh_token" => new_refresh_token
+             } = json_response(conn1, 200)
+
+      assert new_refresh_token != refresh_token
+
+      conn2 = post(conn, ~p"/api/token/refresh", params)
+
+      assert %{"type" => type} = json_response(conn2, 400)
       assert type == "https://pergamino.app/errors/invalid-refresh-token"
+    end
+
+    test "can chain multiple refresh token rotations", %{conn: conn} do
+      {:ok, email} = EmailAddress.create("test@example.com")
+      {token1, expires_at1} = RefreshToken.generate()
+      :ok = RefreshTokenStore.store(token1, expires_at1, email)
+
+      conn1 = post(conn, ~p"/api/token/refresh", %{"refresh_token" => token1})
+      assert %{"refresh_token" => token2} = json_response(conn1, 200)
+
+      conn2 = post(conn, ~p"/api/token/refresh", %{"refresh_token" => token2})
+      assert %{"refresh_token" => token3} = json_response(conn2, 200)
+
+      conn3 = post(conn, ~p"/api/token/refresh", %{"refresh_token" => token3})
+      assert %{"refresh_token" => _token4} = json_response(conn3, 200)
+
+      assert token1 != token2
+      assert token2 != token3
+      assert token1 != token3
     end
   end
 

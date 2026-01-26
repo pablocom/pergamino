@@ -33,4 +33,18 @@ config :pergamino, :redis,
   pool_size: 10,
   url: "redis://localhost:6379/0"
 
+config :ex_aws,
+  access_key_id: "local",
+  secret_access_key: "local",
+  region: "us-east-1"
+
+config :ex_aws, :dynamodb,
+  scheme: "http://",
+  host: "localhost",
+  port: 8000,
+  region: "us-east-1"
+
+config :pergamino, :dynamodb,
+  refresh_tokens_table: "refresh_tokens"
+
 import_config "#{config_env()}.exs"

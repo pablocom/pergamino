@@ -29,4 +29,12 @@ if config_env() == :prod do
   config :pergamino, Pergamino.Infrastructure.Messaging.EmailSender,
     adapter: Swoosh.Adapters.Resend,
     api_key: System.fetch_env!("RESEND_API_KEY")
+
+  config :ex_aws,
+    access_key_id: System.fetch_env!("AWS_ACCESS_KEY_ID"),
+    secret_access_key: System.fetch_env!("AWS_SECRET_ACCESS_KEY"),
+    region: System.get_env("AWS_REGION", "us-east-1")
+
+  config :pergamino, :dynamodb,
+    refresh_tokens_table: System.get_env("DYNAMODB_REFRESH_TOKENS_TABLE", "refresh_tokens")
 end

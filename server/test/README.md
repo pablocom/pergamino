@@ -4,13 +4,13 @@ This project follows a testing strategy with clear separation between unit, inte
 
 ## Test Categories
 
-### Unit Tests (`test/unit/`)
+### Unit Tests (`test/pergamino/unit/`)
 
 Fast, isolated tests with no external dependencies. Test business logic in isolation using mocked dependencies. Preferably tests collaborator modules through application service layer.
 
 **Examples:**
-- `unit/auth/token_generator_test.exs` - Pure JWT token generation logic
-- `unit/auth/oauth2_flow_test.exs` - OAuth2 flow business logic with mocked Redis and email
+- `pergamino/unit/auth/token_generator_test.exs` - Pure JWT token generation logic
+- `pergamino/unit/auth/oauth2_flow_test.exs` - OAuth2 flow business logic with mocked Redis and email
 
 **Characteristics:**
 - Run with `async: true` for maximum speed
@@ -23,13 +23,13 @@ Fast, isolated tests with no external dependencies. Test business logic in isola
 mix test.unit
 ```
 
-### Integration Tests (`test/integration/`)
+### Integration Tests (`test/pergamino/integration/`)
 
 Narrow integration tests that verify our adapters work correctly with external dependencies.
 
 **Examples:**
-- `integration/auth/authorization_code_store_test.exs` - Redis operations
-- `integration/messaging/email_sender_test.exs` - Email sending with Swoosh
+- `pergamino/integration/auth/authorization_code_store_test.exs` - Redis operations
+- `pergamino/integration/messaging/email_sender_test.exs` - Email sending with Swoosh
 
 **Characteristics:**
 - Run with `async: false` for tests sharing state (e.g., Redis)
@@ -42,13 +42,13 @@ Narrow integration tests that verify our adapters work correctly with external d
 mix test.integration
 ```
 
-### Component Tests (`test/component/`)
+### Component Tests (`test/pergamino/component/`)
 
 Full HTTP stack tests through controller endpoints with real infrastructure.
 
 **Examples:**
-- `component/web/controllers/token_test.exs` - OAuth2 token endpoints
-- `component/web/controllers/verification_email_controller_test.exs` - Email verification endpoint
+- `pergamino/component/web/controllers/token_test.exs` - OAuth2 token endpoints
+- `pergamino/component/web/controllers/verification_email_controller_test.exs` - Email verification endpoint
 
 **Characteristics:**
 - Test through the HTTP interface (controllers)
@@ -77,10 +77,10 @@ mix test.integration
 mix test.component
 
 # Run specific test file
-mix test test/unit/auth/oauth2_flow_test.exs
+mix test test/pergamino/unit/auth/oauth2_flow_test.exs
 
 # Run specific test by line number
-mix test test/unit/auth/oauth2_flow_test.exs:42
+mix test test/pergamino/unit/auth/oauth2_flow_test.exs:42
 ```
 
 ## CI Strategy
@@ -148,9 +148,9 @@ end
 ### Module Naming
 
 Tests follow a namespace pattern matching their directory:
-- `Unit.*` for unit tests
-- `Integration.*` for integration tests
-- `Component.*` for component tests
+- `Pergamino.Unit.*` for unit tests
+- `Pergamino.Integration.*` for integration tests
+- `Pergamino.Component.*` for component tests
 
 ### Test Helpers
 

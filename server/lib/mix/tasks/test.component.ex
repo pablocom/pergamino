@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Test.Component do
 
   @shortdoc "Runs component tests only"
   @moduledoc """
-  Runs only component tests from test/component directory.
+  Runs only component tests from test/pergamino/component directory.
 
   Component tests verify the full HTTP stack with real infrastructure through controller endpoints.
 
@@ -14,6 +14,6 @@ defmodule Mix.Tasks.Test.Component do
 
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("test", ["test/component" | args])
+    Mix.Task.run("test", ["test/pergamino/component" | args])
   end
 end
