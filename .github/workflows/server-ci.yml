@@ -48,6 +48,14 @@ jobs:
         working-directory: server
         run: mix deps.get
 
+      - name: Compile code
+        working-directory: server
+        run: mix compile --warnings-as-errors
+
+      - name: Run unit tests
+        working-directory: server
+        run: mix test.unit
+
       - name: Wait for DynamoDB to be ready
         run: |
           echo "Waiting for DynamoDB Local to be ready..."
@@ -59,14 +67,6 @@ jobs:
             echo "Waiting... ($i/30)"
             sleep 1
           done
-
-      - name: Compile code
-        working-directory: server
-        run: mix compile --warnings-as-errors
-
-      - name: Run unit tests
-        working-directory: server
-        run: mix test.unit
 
       - name: Run integration tests
         working-directory: server
