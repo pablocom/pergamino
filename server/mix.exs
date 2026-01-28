@@ -52,6 +52,7 @@ defmodule Pergamino.MixProject do
       {:ex_aws_dynamo, "~> 4.2"},
       {:hackney, "~> 1.20"},
       {:sweet_xml, "~> 0.7.5"},
+      {:ecto, "~> 3.13"},
       {:mox, "~> 1.0", only: :test}
     ]
   end
