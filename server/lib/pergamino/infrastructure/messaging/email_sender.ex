@@ -7,11 +7,17 @@ defmodule Pergamino.Infrastructure.Messaging.EmailSender do
   alias Pergamino.Domain.EmailAddress
 
   @spec send_verification_email(EmailAddress.t(), String.t()) ::
-          {:ok, term()} | {:error, term()}
+          {:ok, term()} | {:error, :email_delivery_failed}
   def send_verification_email(%EmailAddress{} = recipient, deeplink) do
-    recipient
-    |> build_verification_email(deeplink)
-    |> deliver()
+    case recipient
+         |> build_verification_email(deeplink)
+         |> deliver() do
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, _reason} ->
+        {:error, :email_delivery_failed}
+    end
   end
 
   @spec build_verification_email(EmailAddress.t(), String.t()) :: Swoosh.Email.t()

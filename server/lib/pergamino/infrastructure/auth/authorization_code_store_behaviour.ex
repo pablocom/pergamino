@@ -6,9 +6,10 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStoreBehaviour do
               expires_at :: DateTime.t(),
               email :: EmailAddress.t(),
               challenge :: String.t()
-            ) :: :ok | {:error, :redis_unavailable}
+            ) :: :ok | {:error, term()}
 
   @callback retrieve_and_delete(String.t()) ::
               {:ok, String.t(), String.t()}
-              | {:error, :code_not_found | :redis_unavailable}
+              | {:error, :code_not_found}
+              | {:error, term()}
 end

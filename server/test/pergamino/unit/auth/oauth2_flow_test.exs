@@ -61,13 +61,13 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
 
       params = %{email: "test@example.com", code_challenge: "challenge"}
 
-      assert {:error, :service_unavailable} = OAuth2Flow.initiate(params)
+      assert {:error, :redis_unavailable} = OAuth2Flow.initiate(params)
     end
 
     test "returns error when email sending fails" do
       expect(AuthorizationCodeStoreMock, :store, fn _, _, _, _ -> :ok end)
       expect(EmailSenderMock, :send_verification_email, fn _, _ ->
-        {:error, :smtp_error}
+        {:error, :email_delivery_failed}
       end)
 
       params = %{email: "test@example.com", code_challenge: "challenge"}
@@ -162,7 +162,7 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
 
       params = %{code: code, code_verifier: verifier}
 
-      assert {:error, :service_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :invalid_authorization_code} = OAuth2Flow.exchange_authorization_code(params)
     end
 
     test "returns error when code store is unavailable" do
@@ -172,7 +172,7 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
 
       params = %{code: "test_code", code_verifier: "verifier"}
 
-      assert {:error, :service_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :redis_unavailable} = OAuth2Flow.exchange_authorization_code(params)
     end
 
     test "returns error when refresh token store is unavailable" do
@@ -190,7 +190,7 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
 
       params = %{code: code, code_verifier: verifier}
 
-      assert {:error, :service_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :dynamodb_unavailable} = OAuth2Flow.exchange_authorization_code(params)
     end
   end
 
@@ -233,12 +233,12 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
       assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("invalid_token")
     end
 
-    test "returns error when token store is unavailable" do
+    test "returns error when token store is unavailable on retrieve" do
       expect(RefreshTokenStoreMock, :retrieve_and_delete, fn _ ->
         {:error, :dynamodb_unavailable}
       end)
 
-      assert {:error, :service_unavailable} = OAuth2Flow.refresh_access_token("some_token")
+      assert {:error, :dynamodb_unavailable} = OAuth2Flow.refresh_access_token("some_token")
     end
 
     test "returns error when email from store is invalid" do
@@ -261,7 +261,7 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :dynamodb_unavailable}
       end)
 
-      assert {:error, :service_unavailable} = OAuth2Flow.refresh_access_token(old_token)
+      assert {:error, :dynamodb_unavailable} = OAuth2Flow.refresh_access_token(old_token)
     end
   end
 end

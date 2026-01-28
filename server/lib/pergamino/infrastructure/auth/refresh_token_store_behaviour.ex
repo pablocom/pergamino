@@ -5,9 +5,10 @@ defmodule Pergamino.Infrastructure.Auth.RefreshTokenStoreBehaviour do
               token :: String.t(),
               expires_at :: DateTime.t(),
               email :: EmailAddress.t()
-            ) :: :ok | {:error, :dynamodb_unavailable}
+            ) :: :ok | {:error, term()}
 
   @callback retrieve_and_delete(String.t()) ::
               {:ok, String.t()}
-              | {:error, :token_not_found | :dynamodb_unavailable}
+              | {:error, :token_not_found}
+              | {:error, term()}
 end

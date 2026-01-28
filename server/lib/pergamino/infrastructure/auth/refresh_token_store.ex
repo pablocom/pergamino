@@ -8,8 +8,7 @@ defmodule Pergamino.Infrastructure.Auth.RefreshTokenStore do
           token :: String.t(),
           expires_at :: DateTime.t(),
           email :: EmailAddress.t()
-        ) ::
-          :ok | {:error, :dynamodb_unavailable}
+        ) :: :ok | {:error, :dynamodb_unavailable}
   def store(token, expires_at, %EmailAddress{address: email}) when is_binary(token) do
     ttl = DateTime.to_unix(expires_at)
 
@@ -20,14 +19,18 @@ defmodule Pergamino.Infrastructure.Auth.RefreshTokenStore do
     }
 
     case ExAws.Dynamo.put_item(table_name(), item) |> ExAws.request() do
-      {:ok, _} -> :ok
-      {:error, _reason} -> {:error, :dynamodb_unavailable}
+      {:ok, _} ->
+        :ok
+
+      {:error, _reason} ->
+        {:error, :dynamodb_unavailable}
     end
   end
 
   @spec retrieve_and_delete(String.t()) ::
           {:ok, String.t()}
-          | {:error, :token_not_found | :dynamodb_unavailable}
+          | {:error, :token_not_found}
+          | {:error, :dynamodb_unavailable}
   def retrieve_and_delete(token) do
     key = %{"token" => token}
 
@@ -38,8 +41,14 @@ defmodule Pergamino.Infrastructure.Auth.RefreshTokenStore do
              {:ok, _} <- delete_token(token) do
           {:ok, email}
         else
-          {:error, :expired} -> {:error, :token_not_found}
-          {:error, _} -> {:error, :dynamodb_unavailable}
+          {:error, :expired} ->
+            {:error, :token_not_found}
+
+          {:error, :dynamodb_unavailable} ->
+            {:error, :dynamodb_unavailable}
+
+          {:error, _other} ->
+            {:error, :token_not_found}
         end
 
       {:ok, _} ->
@@ -81,8 +90,11 @@ defmodule Pergamino.Infrastructure.Auth.RefreshTokenStore do
     key = %{"token" => token}
 
     case ExAws.Dynamo.delete_item(table_name(), key) |> ExAws.request() do
-      {:ok, _} -> {:ok, :deleted}
-      {:error, reason} -> {:error, reason}
+      {:ok, _} ->
+        {:ok, :deleted}
+
+      {:error, _reason} ->
+        {:error, :dynamodb_unavailable}
     end
   end
 end

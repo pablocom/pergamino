@@ -11,8 +11,7 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
           expires_at :: DateTime.t(),
           email :: EmailAddress.t(),
           challenge :: String.t()
-        ) ::
-          :ok | {:error, :redis_unavailable}
+        ) :: :ok | {:error, :redis_unavailable}
   def store(code, expires_at, %EmailAddress{address: email}, challenge)
       when is_binary(code) and is_binary(challenge) do
     key = redis_key(code)
@@ -26,8 +25,11 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
         })
 
       case Redix.command(:redix, ["SETEX", key, ttl_seconds, value]) do
-        {:ok, "OK"} -> :ok
-        {:error, _reason} -> {:error, :redis_unavailable}
+        {:ok, "OK"} ->
+          :ok
+
+        {:error, _reason} ->
+          {:error, :redis_unavailable}
       end
     else
       :ok
@@ -36,7 +38,8 @@ defmodule Pergamino.Infrastructure.Auth.AuthorizationCodeStore do
 
   @spec retrieve_and_delete(String.t()) ::
           {:ok, String.t(), String.t()}
-          | {:error, :code_not_found | :redis_unavailable}
+          | {:error, :code_not_found}
+          | {:error, :redis_unavailable}
   def retrieve_and_delete(code) do
     key = redis_key(code)
 

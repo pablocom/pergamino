@@ -10,6 +10,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   @type error_code ::
           :missing_email
+          | :invalid_email
           | :invalid_email_format
           | :missing_code_challenge
           | :missing_code_challenge_method
@@ -19,17 +20,43 @@ defmodule Pergamino.Web.ProblemDetails do
           | :invalid_authorization_code
           | :missing_refresh_token
           | :invalid_refresh_token
+          | :token_generation_failed
+          | :redis_unavailable
+          | :dynamodb_unavailable
+          | :email_delivery_failed
           | :internal_server_error
           | :service_unavailable
           | :not_implemented
 
-  @spec build(error_code(), String.t()) :: t()
+  @spec build(error_code(), String.t()) :: {:ok, t()}
   def build(error_code, instance) do
-    base_problem(error_code)
-    |> Map.put(:instance, instance)
+    problem_code = map_error_code(error_code)
+
+    problem_details =
+      problem_details_for(problem_code)
+      |> Map.put(:instance, instance)
+
+    {:ok, problem_details}
   end
 
-  defp base_problem(:missing_email) do
+  defp map_error_code(error_code) do
+    case error_code do
+      :missing_email -> :missing_email
+      :invalid_email -> :invalid_email_format
+      :missing_code_challenge -> :missing_code_challenge
+      :missing_code_challenge_method -> :missing_code_challenge_method
+      :invalid_pkce_parameters -> :invalid_pkce_parameters
+      :missing_code -> :missing_code
+      :missing_code_verifier -> :missing_code_verifier
+      :invalid_authorization_code -> :invalid_authorization_code
+      :missing_refresh_token -> :missing_refresh_token
+      :invalid_refresh_token -> :invalid_refresh_token
+      :not_implemented -> :not_implemented
+      _ -> :internal_server_error
+    end
+  end
+
+  defp problem_details_for(:missing_email) do
     %{
       type: "https://pergamino.app/errors/missing-email",
       title: "Validation Error",
@@ -41,7 +68,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:invalid_email_format) do
+  defp problem_details_for(:invalid_email_format) do
     %{
       type: "https://pergamino.app/errors/invalid-email-format",
       title: "Validation Error",
@@ -53,7 +80,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:missing_code_challenge) do
+  defp problem_details_for(:missing_code_challenge) do
     %{
       type: "https://pergamino.app/errors/missing-code-challenge",
       title: "Validation Error",
@@ -65,7 +92,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:missing_code_challenge_method) do
+  defp problem_details_for(:missing_code_challenge_method) do
     %{
       type: "https://pergamino.app/errors/missing-code-challenge-method",
       title: "Validation Error",
@@ -77,7 +104,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:invalid_pkce_parameters) do
+  defp problem_details_for(:invalid_pkce_parameters) do
     %{
       type: "https://pergamino.app/errors/invalid-pkce-parameters",
       title: "Validation Error",
@@ -89,7 +116,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:missing_code) do
+  defp problem_details_for(:missing_code) do
     %{
       type: "https://pergamino.app/errors/missing-code",
       title: "Validation Error",
@@ -101,7 +128,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:missing_code_verifier) do
+  defp problem_details_for(:missing_code_verifier) do
     %{
       type: "https://pergamino.app/errors/missing-code-verifier",
       title: "Validation Error",
@@ -113,7 +140,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:invalid_authorization_code) do
+  defp problem_details_for(:invalid_authorization_code) do
     %{
       type: "https://pergamino.app/errors/invalid-authorization-code",
       title: "Authentication Error",
@@ -125,7 +152,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:missing_refresh_token) do
+  defp problem_details_for(:missing_refresh_token) do
     %{
       type: "https://pergamino.app/errors/missing-refresh-token",
       title: "Validation Error",
@@ -137,7 +164,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:invalid_refresh_token) do
+  defp problem_details_for(:invalid_refresh_token) do
     %{
       type: "https://pergamino.app/errors/invalid-refresh-token",
       title: "Authentication Error",
@@ -149,7 +176,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:internal_server_error) do
+  defp problem_details_for(:internal_server_error) do
     %{
       type: "https://pergamino.app/errors/internal-server-error",
       title: "Internal Server Error",
@@ -159,17 +186,7 @@ defmodule Pergamino.Web.ProblemDetails do
     }
   end
 
-  defp base_problem(:service_unavailable) do
-    %{
-      type: "https://pergamino.app/errors/service-unavailable",
-      title: "Service Unavailable",
-      status: 503,
-      detail: "Unable to send email. Please try again later.",
-      extensions: %{}
-    }
-  end
-
-  defp base_problem(:not_implemented) do
+  defp problem_details_for(:not_implemented) do
     %{
       type: "https://pergamino.app/errors/not-implemented",
       title: "Not Implemented",

@@ -30,7 +30,10 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
           expires_in: integer()
         }
 
-  @spec initiate(initiate_params()) :: :ok | {:error, atom()}
+  @spec initiate(initiate_params()) ::
+          :ok
+          | {:error, :invalid_email}
+          | {:error, term()}
   def initiate(%{email: email_string, code_challenge: challenge_string}) do
     code_store = code_store()
     email_sender = email_sender()
@@ -40,20 +43,13 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
          :ok <- code_store.store(code, expires_at, email, challenge_string),
          {:ok, _} <- email_sender.send_verification_email(email, build_deeplink(code)) do
       :ok
-    else
-      {:error, :invalid_email} ->
-        {:error, :invalid_email}
-
-      {:error, :redis_unavailable} ->
-        {:error, :service_unavailable}
-
-      {:error, _delivery_error} ->
-        {:error, :email_delivery_failed}
     end
   end
 
   @spec exchange_authorization_code(exchange_params()) ::
-          {:ok, token_response()} | {:error, atom()}
+          {:ok, token_response()}
+          | {:error, :invalid_authorization_code}
+          | {:error, term()}
   def exchange_authorization_code(%{code: code, code_verifier: verifier}) do
     code_store = code_store()
     token_store = refresh_token_store()
@@ -69,23 +65,19 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
       {:error, error} when error in [:code_not_found, :invalid_code_verifier] ->
         {:error, :invalid_authorization_code}
 
-      {:error, :redis_unavailable} ->
-        {:error, :service_unavailable}
-
-      {:error, :dynamodb_unavailable} ->
-        {:error, :service_unavailable}
-
       {:error, :invalid_email} ->
         Logger.error("Invalid email stored in Redis during token exchange: #{code}")
-        {:error, :service_unavailable}
+        {:error, :invalid_authorization_code}
 
-      {:error, _other} ->
-        {:error, :token_generation_failed}
+      {:error, other_error} ->
+        {:error, other_error}
     end
   end
 
   @spec refresh_access_token(String.t()) ::
-          {:ok, token_response()} | {:error, atom()}
+          {:ok, token_response()}
+          | {:error, :invalid_refresh_token}
+          | {:error, term()}
   def refresh_access_token(refresh_token_string) do
     token_store = refresh_token_store()
 
@@ -96,18 +88,15 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
          :ok <- token_store.store(new_refresh_token, refresh_expires_at, email) do
       {:ok, build_token_response(access_token, new_refresh_token)}
     else
-      {:error, :token_not_found} ->
+      {:error, error} when error in [:token_not_found, :invalid_email] ->
+        if error == :invalid_email do
+          Logger.error("Invalid email stored in DynamoDB during token refresh")
+        end
+
         {:error, :invalid_refresh_token}
 
-      {:error, :dynamodb_unavailable} ->
-        {:error, :service_unavailable}
-
-      {:error, :invalid_email} ->
-        Logger.error("Invalid email stored in DynamoDB during token refresh")
-        {:error, :invalid_refresh_token}
-
-      {:error, _other} ->
-        {:error, :invalid_refresh_token}
+      {:error, other_error} ->
+        {:error, other_error}
     end
   end
 
