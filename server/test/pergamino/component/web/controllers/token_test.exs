@@ -69,8 +69,8 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert %{"type" => type} = json_response(conn, 401)
+      assert type == "https://pergamino.app/errors/authentication/invalid_authorization_code"
     end
 
     test "returns error for invalid code_verifier", %{conn: conn} do
@@ -87,8 +87,8 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert %{"type" => type} = json_response(conn, 401)
+      assert type == "https://pergamino.app/errors/authentication/invalid_authorization_code"
     end
 
     test "returns error when code is missing", %{conn: conn} do
@@ -96,8 +96,12 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/missing-code"
+      assert %{
+               "type" => "https://pergamino.app/errors/validation",
+               "extensions" => %{"errors" => errors}
+             } = json_response(conn, 400)
+
+      assert [%{"field" => "code", "code" => "required"}] = errors
     end
 
     test "returns error when code_verifier is missing", %{conn: conn} do
@@ -111,8 +115,12 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/missing-code-verifier"
+      assert %{
+               "type" => "https://pergamino.app/errors/validation",
+               "extensions" => %{"errors" => errors}
+             } = json_response(conn, 400)
+
+      assert [%{"field" => "code_verifier", "code" => "required"}] = errors
     end
 
     test "authorization code can only be used once", %{conn: conn} do
@@ -129,8 +137,8 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       post(conn, ~p"/api/token", params)
       conn2 = post(conn, ~p"/api/token", params)
 
-      assert %{"type" => type} = json_response(conn2, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert %{"type" => type} = json_response(conn2, 401)
+      assert type == "https://pergamino.app/errors/authentication/invalid_authorization_code"
     end
   end
 
@@ -165,8 +173,8 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token/refresh", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-refresh-token"
+      assert %{"type" => type} = json_response(conn, 401)
+      assert type == "https://pergamino.app/errors/authentication/invalid_refresh_token"
     end
 
     test "returns error when refresh_token is missing", %{conn: conn} do
@@ -174,8 +182,12 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn = post(conn, ~p"/api/token/refresh", params)
 
-      assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/missing-refresh-token"
+      assert %{
+               "type" => "https://pergamino.app/errors/validation",
+               "extensions" => %{"errors" => errors}
+             } = json_response(conn, 400)
+
+      assert [%{"field" => "refresh_token", "code" => "required"}] = errors
     end
 
     test "old refresh token cannot be reused after rotation", %{conn: conn} do
@@ -195,8 +207,8 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
 
       conn2 = post(conn, ~p"/api/token/refresh", params)
 
-      assert %{"type" => type} = json_response(conn2, 400)
-      assert type == "https://pergamino.app/errors/invalid-refresh-token"
+      assert %{"type" => type} = json_response(conn2, 401)
+      assert type == "https://pergamino.app/errors/authentication/invalid_refresh_token"
     end
 
     test "can chain multiple refresh token rotations", %{conn: conn} do

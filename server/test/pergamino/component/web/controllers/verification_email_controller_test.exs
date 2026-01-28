@@ -36,10 +36,15 @@ defmodule Pergamino.Component.Web.Controllers.VerificationEmailTest do
       conn = post(conn, ~p"/api/verification-emails", params)
 
       assert %{
-               "type" => "https://pergamino.app/errors/missing-email",
-               "detail" => "Email parameter is required",
-               "status" => 400
+               "type" => "https://pergamino.app/errors/validation",
+               "detail" => "Request validation failed",
+               "status" => 400,
+               "extensions" => %{
+                 "errors" => errors
+               }
              } = json_response(conn, 400)
+
+      assert [%{"field" => "email", "code" => "required"}] = errors
 
       assert_no_email_sent()
     end
@@ -52,10 +57,15 @@ defmodule Pergamino.Component.Web.Controllers.VerificationEmailTest do
       conn = post(conn, ~p"/api/verification-emails", params)
 
       assert %{
-               "type" => "https://pergamino.app/errors/missing-code-challenge",
-               "detail" => "Code challenge parameter is required",
-               "status" => 400
+               "type" => "https://pergamino.app/errors/validation",
+               "detail" => "Request validation failed",
+               "status" => 400,
+               "extensions" => %{
+                 "errors" => errors
+               }
              } = json_response(conn, 400)
+
+      assert [%{"field" => "code_challenge", "code" => "required"}] = errors
 
       assert_no_email_sent()
     end
@@ -71,7 +81,7 @@ defmodule Pergamino.Component.Web.Controllers.VerificationEmailTest do
       conn = post(conn, ~p"/api/verification-emails", params)
 
       assert %{
-               "type" => "https://pergamino.app/errors/invalid-email-format",
+               "type" => "https://pergamino.app/errors/validation/invalid_format-email",
                "detail" => "Email format is invalid",
                "status" => 400
              } = json_response(conn, 400)
