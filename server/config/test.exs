@@ -32,3 +32,5 @@ config :ex_aws, :dynamodb,
 
 config :pergamino, :dynamodb,
   refresh_tokens_table: "test_refresh_tokens"
+
+config :testcontainers, docker_url: System.get_env("DOCKER_HOST")

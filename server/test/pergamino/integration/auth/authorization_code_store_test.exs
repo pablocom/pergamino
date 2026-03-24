@@ -1,16 +1,18 @@
 defmodule Pergamino.Integration.Auth.AuthorizationCodeStoreTest do
   use ExUnit.Case, async: false
 
-  import RedisHelpers
+  import Mox
 
   alias Pergamino.Domain.EmailAddress
   alias Pergamino.Infrastructure.Auth.{AuthorizationCode, AuthorizationCodeStore}
-  alias Pergamino.Core.Clock
+  alias Pergamino.Core.ClockMock
 
   @pkce_challenge "test_challenge_string"
+  @frozen_now ~U[2024-06-15 12:00:00Z]
 
   setup do
     on_exit(fn ->
+      Application.delete_env(:pergamino, :clock_adapter)
       flush_authorization_codes()
     end)
 
@@ -19,6 +21,9 @@ defmodule Pergamino.Integration.Auth.AuthorizationCodeStoreTest do
 
   describe "Authorization code store" do
     test "stores authorization code with correct TTL" do
+      stub(ClockMock, :utc_now, fn -> @frozen_now end)
+      Application.put_env(:pergamino, :clock_adapter, ClockMock)
+
       {:ok, email} = EmailAddress.create("test@example.com")
       {code, expires_at} = AuthorizationCode.generate()
       challenge = @pkce_challenge
@@ -30,8 +35,7 @@ defmodule Pergamino.Integration.Auth.AuthorizationCodeStoreTest do
       {:ok, ttl} = Redix.command(:redix, ["TTL", key])
 
       assert is_binary(stored_value)
-      assert ttl > 0
-      assert ttl <= 300
+      assert ttl == 300
 
       {:ok, decoded} = Jason.decode(stored_value)
       assert decoded["email"] == "test@example.com"
@@ -57,17 +61,26 @@ defmodule Pergamino.Integration.Auth.AuthorizationCodeStoreTest do
                AuthorizationCodeStore.retrieve_and_delete("nonexistent_code")
     end
 
-    test "returns error for expired code after TTL" do
+    test "does not store code when expiration is already in the past" do
+      frozen_now = @frozen_now
+      already_expired = DateTime.add(frozen_now, -10, :second)
+
+      stub(ClockMock, :utc_now, fn -> frozen_now end)
+      Application.put_env(:pergamino, :clock_adapter, ClockMock)
+
       {code, _expires_at} = AuthorizationCode.generate()
       {:ok, email} = EmailAddress.create("test@example.com")
 
-      short_expires_at = Clock.utc_now() |> DateTime.add(1, :second)
-
-      :ok = AuthorizationCodeStore.store(code, short_expires_at, email, "challenge")
-
-      Process.sleep(1100)
+      assert :ok = AuthorizationCodeStore.store(code, already_expired, email, "challenge")
 
       assert {:error, :code_not_found} = AuthorizationCodeStore.retrieve_and_delete(code)
+    end
+  end
+
+  defp flush_authorization_codes do
+    case Redix.command(:redix, ["KEYS", "auth_code:*"]) do
+      {:ok, keys} when keys != [] -> Redix.command(:redix, ["DEL" | keys])
+      _ -> :ok
     end
   end
 end

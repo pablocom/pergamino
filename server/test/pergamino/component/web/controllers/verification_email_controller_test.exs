@@ -52,7 +52,7 @@ defmodule Pergamino.Component.Web.Controllers.VerificationEmailTest do
       conn = post(conn, ~p"/api/verification-emails", params)
 
       assert %{
-               "type" => "https://pergamino.app/errors/missing-code-challenge",
+               "type" => "missing-code-challenge",
                "detail" => "Code challenge parameter is required",
                "status" => 400
              } = json_response(conn, 400)

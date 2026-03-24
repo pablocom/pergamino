@@ -1,9 +1,6 @@
 defmodule Pergamino.Component.Web.Controllers.TokenTest do
   use Pergamino.ConnCase, async: true
 
-  import RedisHelpers
-  import DynamoDBHelpers
-
   alias Pergamino.Domain.EmailAddress
 
   alias Pergamino.Infrastructure.Auth.{
@@ -15,11 +12,6 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
   }
 
   @pkce_verifier "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-
-  setup_all do
-    ensure_refresh_tokens_table()
-    :ok
-  end
 
   setup do
     on_exit(fn ->
@@ -70,7 +62,7 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       conn = post(conn, ~p"/api/token", params)
 
       assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert type == "invalid-authorization-code"
     end
 
     test "returns error for invalid code_verifier", %{conn: conn} do
@@ -88,7 +80,7 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       conn = post(conn, ~p"/api/token", params)
 
       assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert type == "invalid-authorization-code"
     end
 
     test "returns error when code is missing", %{conn: conn} do
@@ -97,7 +89,7 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       conn = post(conn, ~p"/api/token", params)
 
       assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/missing-code"
+      assert type == "missing-code"
     end
 
     test "returns error when code_verifier is missing", %{conn: conn} do
@@ -112,7 +104,7 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       conn = post(conn, ~p"/api/token", params)
 
       assert %{"type" => type} = json_response(conn, 400)
-      assert type == "https://pergamino.app/errors/missing-code-verifier"
+      assert type == "missing-code-verifier"
     end
 
     test "authorization code can only be used once", %{conn: conn} do
@@ -130,7 +122,7 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
       conn2 = post(conn, ~p"/api/token", params)
 
       assert %{"type" => type} = json_response(conn2, 400)
-      assert type == "https://pergamino.app/errors/invalid-authorization-code"
+      assert type == "invalid-authorization-code"
     end
   end
 
@@ -222,5 +214,32 @@ defmodule Pergamino.Component.Web.Controllers.TokenTest do
   defp create_challenge(verifier) do
     :crypto.hash(:sha256, verifier)
     |> Base.url_encode64(padding: false)
+  end
+
+  defp flush_authorization_codes do
+    case Redix.command(:redix, ["KEYS", "auth_code:*"]) do
+      {:ok, keys} when keys != [] -> Redix.command(:redix, ["DEL" | keys])
+      _ -> :ok
+    end
+  end
+
+  defp flush_refresh_tokens do
+    table_name =
+      Application.fetch_env!(:pergamino, :dynamodb)
+      |> Keyword.fetch!(:refresh_tokens_table)
+
+    case ExAws.Dynamo.scan(table_name) |> ExAws.request() do
+      {:ok, %{"Items" => items}} when is_list(items) ->
+        Enum.each(items, fn
+          %{"token" => %{"S" => token}} ->
+            ExAws.Dynamo.delete_item(table_name, %{"token" => token}) |> ExAws.request()
+
+          _ ->
+            :ok
+        end)
+
+      _ ->
+        :ok
+    end
   end
 end

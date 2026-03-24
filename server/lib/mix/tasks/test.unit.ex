@@ -15,6 +15,7 @@ defmodule Mix.Tasks.Test.Unit do
 
   @impl Mix.Task
   def run(args) do
+    Application.put_env(:pergamino, :tests, skip_containers: true)
     Mix.Task.run("test", ["test/pergamino/unit" | args])
   end
 end

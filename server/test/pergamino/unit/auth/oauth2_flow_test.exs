@@ -12,6 +12,12 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
   setup :verify_on_exit!
 
   setup do
+    stub(AuthorizationCodeStoreMock, :store, fn _, _, _, _ -> :ok end)
+    stub(AuthorizationCodeStoreMock, :retrieve_and_delete, fn _ -> {:error, :code_not_found} end)
+    stub(RefreshTokenStoreMock, :store, fn _, _, _ -> :ok end)
+    stub(RefreshTokenStoreMock, :retrieve_and_delete, fn _ -> {:error, :token_not_found} end)
+    stub(EmailSenderMock, :send_verification_email, fn _, _ -> {:ok, %{}} end)
+
     Application.put_env(:pergamino, :authorization_code_store, AuthorizationCodeStoreMock)
     Application.put_env(:pergamino, :refresh_token_store, RefreshTokenStoreMock)
     Application.put_env(:pergamino, :email_sender, EmailSenderMock)
@@ -43,15 +49,12 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:ok, %{}}
       end)
 
-      params = %{email: email, code_challenge: challenge}
-
-      assert :ok = OAuth2Flow.initiate(params)
+      assert :ok = OAuth2Flow.initiate(%{email: email, code_challenge: challenge})
     end
 
     test "returns error for invalid email format" do
-      params = %{email: "not-an-email", code_challenge: "challenge"}
-
-      assert {:error, :invalid_email} = OAuth2Flow.initiate(params)
+      assert {:error, :invalid_email} =
+               OAuth2Flow.initiate(%{email: "not-an-email", code_challenge: "challenge"})
     end
 
     test "returns error when code store fails" do
@@ -59,25 +62,20 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :redis_unavailable}
       end)
 
-      params = %{email: "test@example.com", code_challenge: "challenge"}
-
-      assert {:error, :redis_unavailable} = OAuth2Flow.initiate(params)
+      assert {:error, :redis_unavailable} =
+               OAuth2Flow.initiate(%{email: "test@example.com", code_challenge: "challenge"})
     end
 
     test "returns error when email sending fails" do
-      expect(AuthorizationCodeStoreMock, :store, fn _, _, _, _ -> :ok end)
       expect(EmailSenderMock, :send_verification_email, fn _, _ ->
         {:error, :email_delivery_failed}
       end)
 
-      params = %{email: "test@example.com", code_challenge: "challenge"}
-
-      assert {:error, :email_delivery_failed} = OAuth2Flow.initiate(params)
+      assert {:error, :email_delivery_failed} =
+               OAuth2Flow.initiate(%{email: "test@example.com", code_challenge: "challenge"})
     end
 
     test "normalizes email to lowercase" do
-      challenge = "test_challenge"
-
       expect(AuthorizationCodeStoreMock, :store, fn _, _, email_obj, _ ->
         assert %EmailAddress{address: "test@example.com"} = email_obj
         :ok
@@ -88,9 +86,7 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:ok, %{}}
       end)
 
-      params = %{email: "Test@Example.COM", code_challenge: challenge}
-
-      OAuth2Flow.initiate(params)
+      OAuth2Flow.initiate(%{email: "Test@Example.COM", code_challenge: "test_challenge"})
     end
   end
 
@@ -112,9 +108,8 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         :ok
       end)
 
-      params = %{code: code, code_verifier: verifier}
-
-      assert {:ok, response} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:ok, response} =
+               OAuth2Flow.exchange_authorization_code(%{code: code, code_verifier: verifier})
 
       assert %{
                access_token: access_token,
@@ -128,13 +123,11 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
     end
 
     test "returns error for invalid authorization code" do
-      expect(AuthorizationCodeStoreMock, :retrieve_and_delete, fn _ ->
-        {:error, :code_not_found}
-      end)
-
-      params = %{code: "invalid_code", code_verifier: "verifier"}
-
-      assert {:error, :invalid_authorization_code} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :invalid_authorization_code} =
+               OAuth2Flow.exchange_authorization_code(%{
+                 code: "invalid_code",
+                 code_verifier: "verifier"
+               })
     end
 
     test "returns error for invalid code_verifier" do
@@ -146,9 +139,11 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:ok, "test@example.com", challenge}
       end)
 
-      params = %{code: code, code_verifier: "wrong_verifier"}
-
-      assert {:error, :invalid_authorization_code} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :invalid_authorization_code} =
+               OAuth2Flow.exchange_authorization_code(%{
+                 code: code,
+                 code_verifier: "wrong_verifier"
+               })
     end
 
     test "returns error when email from store is invalid" do
@@ -160,9 +155,11 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:ok, "not-an-email", challenge}
       end)
 
-      params = %{code: code, code_verifier: verifier}
-
-      assert {:error, :invalid_authorization_code} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :invalid_authorization_code} =
+               OAuth2Flow.exchange_authorization_code(%{
+                 code: code,
+                 code_verifier: verifier
+               })
     end
 
     test "returns error when code store is unavailable" do
@@ -170,9 +167,11 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :redis_unavailable}
       end)
 
-      params = %{code: "test_code", code_verifier: "verifier"}
-
-      assert {:error, :redis_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :redis_unavailable} =
+               OAuth2Flow.exchange_authorization_code(%{
+                 code: "test_code",
+                 code_verifier: "verifier"
+               })
     end
 
     test "returns error when refresh token store is unavailable" do
@@ -188,9 +187,11 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :dynamodb_unavailable}
       end)
 
-      params = %{code: code, code_verifier: verifier}
-
-      assert {:error, :dynamodb_unavailable} = OAuth2Flow.exchange_authorization_code(params)
+      assert {:error, :dynamodb_unavailable} =
+               OAuth2Flow.exchange_authorization_code(%{
+                 code: code,
+                 code_verifier: verifier
+               })
     end
   end
 
@@ -226,11 +227,8 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
     end
 
     test "returns error for invalid refresh token" do
-      expect(RefreshTokenStoreMock, :retrieve_and_delete, fn _ ->
-        {:error, :token_not_found}
-      end)
-
-      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("invalid_token")
+      assert {:error, :invalid_refresh_token} =
+               OAuth2Flow.refresh_access_token("invalid_token")
     end
 
     test "returns error when token store is unavailable on retrieve" do
@@ -238,7 +236,8 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :dynamodb_unavailable}
       end)
 
-      assert {:error, :dynamodb_unavailable} = OAuth2Flow.refresh_access_token("some_token")
+      assert {:error, :dynamodb_unavailable} =
+               OAuth2Flow.refresh_access_token("some_token")
     end
 
     test "returns error when email from store is invalid" do
@@ -246,7 +245,8 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:ok, "not-an-email"}
       end)
 
-      assert {:error, :invalid_refresh_token} = OAuth2Flow.refresh_access_token("some_token")
+      assert {:error, :invalid_refresh_token} =
+               OAuth2Flow.refresh_access_token("some_token")
     end
 
     test "returns error when storing new refresh token fails" do
@@ -261,7 +261,8 @@ defmodule Pergamino.Unit.Auth.OAuth2FlowTest do
         {:error, :dynamodb_unavailable}
       end)
 
-      assert {:error, :dynamodb_unavailable} = OAuth2Flow.refresh_access_token(old_token)
+      assert {:error, :dynamodb_unavailable} =
+               OAuth2Flow.refresh_access_token(old_token)
     end
   end
 end

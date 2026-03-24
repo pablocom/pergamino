@@ -25,7 +25,18 @@
       "Bash(curl:*)",
       "Bash(mix hex.search:*)",
       "WebSearch",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "WebFetch(domain:hex.pm)",
+      "WebFetch(domain:hexdocs.pm)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mix:*)",
+      "Bash(docker info:*)",
+      "Bash(docker context:*)",
+      "Read(//c/Users/Usuario/.docker/**)",
+      "Bash(DOCKER_HOST=tcp://localhost:2375 mix test 2>&1)",
+      "Bash(export DOCKER_HOST=tcp://localhost:2375)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }

@@ -1,23 +1,12 @@
 defmodule Pergamino.Integration.Auth.RefreshTokenStoreTest do
   use ExUnit.Case, async: false
 
-  import RedisHelpers
-  import DynamoDBHelpers
-
   alias Pergamino.Domain.EmailAddress
   alias Pergamino.Infrastructure.Auth.{RefreshToken, RefreshTokenStore}
   alias Pergamino.Core.Clock
 
-  setup_all do
-    ensure_refresh_tokens_table()
-    :ok
-  end
-
   setup do
-    on_exit(fn ->
-      flush_refresh_tokens()
-    end)
-
+    on_exit(fn -> flush_refresh_tokens() end)
     :ok
   end
 
@@ -28,10 +17,9 @@ defmodule Pergamino.Integration.Auth.RefreshTokenStoreTest do
 
       assert :ok = RefreshTokenStore.store(token, expires_at, email)
 
-      table_name = get_table_name()
       key = %{"token" => token}
 
-      {:ok, result} = ExAws.Dynamo.get_item(table_name, key) |> ExAws.request()
+      {:ok, result} = ExAws.Dynamo.get_item(refresh_tokens_table(), key) |> ExAws.request()
 
       assert %{"Item" => item} = result
       assert %{"token" => %{"S" => ^token}} = item
@@ -45,16 +33,15 @@ defmodule Pergamino.Integration.Auth.RefreshTokenStoreTest do
 
       :ok = RefreshTokenStore.store(token, expires_at, email)
 
-      table_name = get_table_name()
       key = %{"token" => token}
 
-      {:ok, %{"Item" => item}} = ExAws.Dynamo.get_item(table_name, key) |> ExAws.request()
+      {:ok, %{"Item" => item}} =
+        ExAws.Dynamo.get_item(refresh_tokens_table(), key) |> ExAws.request()
 
       assert %{"expires_at" => %{"N" => ttl_string}} = item
       {ttl, ""} = Integer.parse(ttl_string)
 
-      expected_ttl = DateTime.to_unix(expires_at)
-      assert ttl == expected_ttl
+      assert ttl == DateTime.to_unix(expires_at)
     end
 
     test "atomically retrieves and deletes token" do
@@ -120,8 +107,25 @@ defmodule Pergamino.Integration.Auth.RefreshTokenStoreTest do
     end
   end
 
-  defp get_table_name do
+  defp refresh_tokens_table do
     Application.fetch_env!(:pergamino, :dynamodb)
     |> Keyword.fetch!(:refresh_tokens_table)
+  end
+
+  defp flush_refresh_tokens do
+    case ExAws.Dynamo.scan(refresh_tokens_table()) |> ExAws.request() do
+      {:ok, %{"Items" => items}} when is_list(items) ->
+        Enum.each(items, fn
+          %{"token" => %{"S" => token}} ->
+            ExAws.Dynamo.delete_item(refresh_tokens_table(), %{"token" => token})
+            |> ExAws.request()
+
+          _ ->
+            :ok
+        end)
+
+      _ ->
+        :ok
+    end
   end
 end

@@ -1,3 +1,7 @@
+unless Application.get_env(:pergamino, :tests, [])[:skip_containers] do
+  Pergamino.TestContainers.start()
+end
+
 Mox.defmock(Pergamino.Infrastructure.Auth.AuthorizationCodeStoreMock,
   for: Pergamino.Infrastructure.Auth.AuthorizationCodeStoreBehaviour
 )

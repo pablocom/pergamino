@@ -82,7 +82,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp problem_details_for(:missing_code_challenge) do
     %{
-      type: "https://pergamino.app/errors/missing-code-challenge",
+      type: "missing-code-challenge",
       title: "Validation Error",
       status: 400,
       detail: "Code challenge parameter is required",
@@ -94,7 +94,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp problem_details_for(:missing_code_challenge_method) do
     %{
-      type: "https://pergamino.app/errors/missing-code-challenge-method",
+      type: "missing-code-challenge-method",
       title: "Validation Error",
       status: 400,
       detail: "Code challenge method parameter is required",
@@ -118,7 +118,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp problem_details_for(:missing_code) do
     %{
-      type: "https://pergamino.app/errors/missing-code",
+      type: "missing-code",
       title: "Validation Error",
       status: 400,
       detail: "Authorization code parameter is required",
@@ -130,7 +130,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp problem_details_for(:missing_code_verifier) do
     %{
-      type: "https://pergamino.app/errors/missing-code-verifier",
+      type: "missing-code-verifier",
       title: "Validation Error",
       status: 400,
       detail: "Code verifier parameter is required",
@@ -142,7 +142,7 @@ defmodule Pergamino.Web.ProblemDetails do
 
   defp problem_details_for(:invalid_authorization_code) do
     %{
-      type: "https://pergamino.app/errors/invalid-authorization-code",
+      type: "invalid-authorization-code",
       title: "Authentication Error",
       status: 400,
       detail: "Invalid or expired authorization code",
