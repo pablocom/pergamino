@@ -126,7 +126,8 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
   defp verify_pkce(challenge, verifier) do
     computed_challenge = :crypto.hash(:sha256, verifier) |> Base.url_encode64(padding: false)
 
-    if byte_size(computed_challenge) == byte_size(challenge) && :crypto.hash_equals(computed_challenge, challenge) do
+    if byte_size(computed_challenge) == byte_size(challenge) &&
+         :crypto.hash_equals(computed_challenge, challenge) do
       :ok
     else
       {:error, :invalid_code_verifier}

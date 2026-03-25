@@ -30,7 +30,6 @@ config :ex_aws, :dynamodb,
   port: 8000,
   region: "us-east-1"
 
-config :pergamino, :dynamodb,
-  refresh_tokens_table: "test_refresh_tokens"
+config :pergamino, :dynamodb, refresh_tokens_table: "test_refresh_tokens"
 
 config :testcontainers, docker_url: System.get_env("DOCKER_HOST")

@@ -44,7 +44,6 @@ config :ex_aws, :dynamodb,
   port: 8000,
   region: "us-east-1"
 
-config :pergamino, :dynamodb,
-  refresh_tokens_table: "refresh_tokens"
+config :pergamino, :dynamodb, refresh_tokens_table: "refresh_tokens"
 
 import_config "#{config_env()}.exs"
