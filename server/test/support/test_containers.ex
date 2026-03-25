@@ -1,5 +1,5 @@
 defmodule Pergamino.TestContainers do
-  alias Testcontainers.{Container, RedisContainer}
+  alias Testcontainers.{Container, RedisContainer, HttpWaitStrategy}
 
   @spec start() :: :ok
   def start do
@@ -28,9 +28,7 @@ defmodule Pergamino.TestContainers do
       Container.new("amazon/dynamodb-local:latest")
       |> Container.with_exposed_port(8000)
       |> Container.with_cmd(["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"])
-      |> Container.with_waiting_strategy(
-        Testcontainers.LogWaitStrategy.new(~r/CorsParams/, 30_000)
-      )
+      |> Container.with_waiting_strategy(HttpWaitStrategy.new("/", 8000))
       |> Testcontainers.start_container()
 
     Container.mapped_port(container, 8000)
