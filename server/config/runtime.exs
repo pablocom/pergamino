@@ -18,6 +18,14 @@ if config_env() != :test do
 end
 
 if config_env() == :prod do
+  config :pergamino, :kafka,
+    brokers: [
+      {System.get_env("KAFKA_HOST", "localhost"),
+       String.to_integer(System.get_env("KAFKA_PORT", "9092"))}
+    ]
+end
+
+if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
 
   config :pergamino, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")

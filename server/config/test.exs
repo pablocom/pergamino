@@ -33,3 +33,11 @@ config :ex_aws, :dynamodb,
 config :pergamino, :dynamodb, refresh_tokens_table: "test_refresh_tokens"
 
 config :testcontainers, docker_url: System.get_env("DOCKER_HOST")
+
+config :pergamino, :kafka,
+  brokers: [{"localhost", 9092}],
+  client_id: :pergamino_kafka_client,
+  conversations_topic: "test-conversations",
+  messages_topic: "test-chat-messages"
+
+config :pergamino, :kafka_client_start_arg, :skip

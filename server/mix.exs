@@ -17,7 +17,7 @@ defmodule Pergamino.MixProject do
   def application do
     [
       mod: {Pergamino.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :brod]
     ]
   end
 
@@ -52,6 +52,7 @@ defmodule Pergamino.MixProject do
       {:ex_aws_dynamo, "~> 4.2"},
       {:hackney, "~> 1.20"},
       {:sweet_xml, "~> 0.7.5"},
+      {:brod, "~> 3.18"},
       {:mox, "~> 1.0", only: :test},
       {:testcontainers, "~> 2.0", only: :test}
     ]
@@ -59,7 +60,7 @@ defmodule Pergamino.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "setup.ssl"],
+      setup: ["deps.get", "setup.ssl", "setup.windows"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end

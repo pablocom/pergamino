@@ -46,4 +46,10 @@ config :ex_aws, :dynamodb,
 
 config :pergamino, :dynamodb, refresh_tokens_table: "refresh_tokens"
 
+config :pergamino, :kafka,
+  brokers: [{"localhost", 9092}],
+  client_id: :pergamino_kafka_client,
+  conversations_topic: "conversations",
+  messages_topic: "chat-messages"
+
 import_config "#{config_env()}.exs"

@@ -1,5 +1,5 @@
 defmodule Pergamino.TestContainers do
-  alias Testcontainers.{Container, RedisContainer, HttpWaitStrategy}
+  alias Testcontainers.{Container, RedisContainer, HttpWaitStrategy, KafkaContainer}
 
   @spec start() :: :ok
   def start do
@@ -7,9 +7,11 @@ defmodule Pergamino.TestContainers do
 
     redis_url = start_redis()
     dynamo_port = start_dynamodb()
+    kafka_port = start_kafka()
 
     reconfigure_redis(redis_url)
     reconfigure_dynamodb(dynamo_port)
+    reconfigure_kafka(kafka_port)
     create_refresh_tokens_table()
 
     :ok
@@ -49,6 +51,47 @@ defmodule Pergamino.TestContainers do
       port: port,
       region: "us-east-1"
     )
+  end
+
+  defp start_kafka do
+    {:ok, container} =
+      KafkaContainer.new()
+      |> Testcontainers.start_container()
+
+    KafkaContainer.port(container)
+  end
+
+  defp reconfigure_kafka(port) do
+    kafka_config = Application.fetch_env!(:pergamino, :kafka)
+    client_id = Keyword.fetch!(kafka_config, :client_id)
+    brokers = [{"localhost", port}]
+
+    Application.put_env(:pergamino, :kafka,
+      Keyword.merge(kafka_config, brokers: brokers)
+    )
+
+    :ok = :brod.start_client(brokers, client_id, auto_start_producers: true)
+
+    create_kafka_topics(brokers, kafka_config)
+  end
+
+  defp create_kafka_topics(brokers, kafka_config) do
+    topics =
+      [
+        Keyword.fetch!(kafka_config, :conversations_topic),
+        Keyword.fetch!(kafka_config, :messages_topic)
+      ]
+      |> Enum.map(fn name ->
+        %{
+          name: name,
+          num_partitions: 1,
+          replication_factor: 1,
+          assignments: [],
+          configs: []
+        }
+      end)
+
+    :ok = :brod.create_topics(brokers, topics, %{timeout: 10_000})
   end
 
   defp create_refresh_tokens_table do

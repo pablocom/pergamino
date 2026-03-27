@@ -6,6 +6,12 @@ defmodule Pergamino.Web.Endpoint do
   end
 
   plug(Plug.RequestId)
+
+  socket("/socket", Pergamino.Web.Channels.UserSocket,
+    websocket: true,
+    longpoll: false
+  )
+
   plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
 
   plug(Plug.Parsers,

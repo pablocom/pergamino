@@ -6,6 +6,10 @@ Mox.defmock(Pergamino.Infrastructure.Auth.AuthorizationCodeStoreMock,
   for: Pergamino.Infrastructure.Auth.AuthorizationCodeStoreBehaviour
 )
 
+Mox.defmock(Pergamino.Infrastructure.Messaging.MessageBrokerMock,
+  for: Pergamino.Infrastructure.Messaging.MessageBrokerBehaviour
+)
+
 Mox.defmock(Pergamino.Infrastructure.Auth.RefreshTokenStoreMock,
   for: Pergamino.Infrastructure.Auth.RefreshTokenStoreBehaviour
 )

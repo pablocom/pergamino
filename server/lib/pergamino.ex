@@ -14,6 +14,7 @@ defmodule Pergamino.Application do
       {Finch, name: Pergamino.Finch},
       Pergamino.Infrastructure.Auth.TokenGenerator.SignerLoader,
       {Redix, {redis_url, [name: :redix]}},
+      {Pergamino.Infrastructure.Messaging.KafkaClient, kafka_client_arg()},
       Pergamino.Web.Endpoint
     ]
 
@@ -26,6 +27,8 @@ defmodule Pergamino.Application do
     Pergamino.Web.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  defp kafka_client_arg, do: Application.get_env(:pergamino, :kafka_client_start_arg, [])
 end
 
 defmodule Pergamino do

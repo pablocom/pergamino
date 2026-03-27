@@ -128,6 +128,17 @@ Focus on:
 - Proper type specifications with `@spec`
 - Well-structured code that reads like prose
 
+## Windows Development
+
+brod (Kafka client) depends on `snappyer` and `crc32cer` which are C/C++ NIFs. These require a C++ compiler on Windows.
+
+### Prerequisites
+- MinGW-w64: `choco install mingw` or `scoop install gcc`
+- Ensure `g++` / `c++` is available in PATH after installation
+
+### Setup
+`mix setup` automatically patches `crc32cer` for MinGW and recompiles the NIFs on Windows (no-op on other platforms). If you run `mix deps.get` separately, run `mix setup.windows` afterwards.
+
 ## Key Dependencies
 
 - **Phoenix 1.8.3**: Web framework
