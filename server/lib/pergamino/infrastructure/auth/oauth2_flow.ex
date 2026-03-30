@@ -70,6 +70,7 @@ defmodule Pergamino.Infrastructure.Auth.OAuth2Flow do
         {:error, :invalid_authorization_code}
 
       {:error, other_error} ->
+        Logger.error("Token exchange failed: #{inspect(other_error)}")
         {:error, other_error}
     end
   end

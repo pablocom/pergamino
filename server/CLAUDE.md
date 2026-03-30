@@ -137,7 +137,7 @@ brod (Kafka client) depends on `snappyer` and `crc32cer` which are C/C++ NIFs. T
 - Ensure `g++` / `c++` is available in PATH after installation
 
 ### Setup
-`mix setup` automatically patches `crc32cer` for MinGW and recompiles the NIFs on Windows (no-op on other platforms). If you run `mix deps.get` separately, run `mix setup.windows` afterwards.
+`mix setup` automatically patches `crc32cer` for MinGW, fixes PATH ordering (Git's MinGW DLLs conflict with standalone MinGW), and recompiles the NIFs on Windows (no-op on other platforms). Always use `mix setup` for initial builds — the Windows patching runs as inline alias functions in `mix.exs` to avoid the chicken-and-egg problem with Mix task auto-compilation.
 
 ## Key Dependencies
 
