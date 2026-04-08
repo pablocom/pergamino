@@ -53,6 +53,8 @@ defmodule Pergamino.MixProject do
       {:hackney, "~> 1.20"},
       {:sweet_xml, "~> 0.7.5"},
       {:brod, "~> 3.18"},
+      {:snappyer, path: "../../OpenSource/snappyer", override: true},
+      {:crc32cer, path: "../../OpenSource/crc32cer", override: true},
       {:mox, "~> 1.0", only: :test},
       {:testcontainers, "~> 2.0", only: :test}
     ]
@@ -60,7 +62,7 @@ defmodule Pergamino.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "setup.ssl", "setup.windows"],
+      setup: ["deps.get", "setup.ssl"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end

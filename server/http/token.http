@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:4000/api
+
+###
+
+POST {{baseUrl}}/token
+Content-Type: application/json
+
+{
+  "code": "FahRDpLDIR5ynG1XmL5VzoZBFpluwDrMIXRERmxnkDM",
+  "code_verifier": "b0Mwki2JkrU_Rjemquti4uoW6PUSHlJPoCdWYiGcJJM"
+}
+
+###
+
+POST {{baseUrl}}/token/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-here"
+}
+

@@ -104,7 +104,29 @@
       "Bash(PATH=\"/c/ProgramData/mingw64/mingw64/bin:$PATH\" escript.exe ~/.mix/elixir/1-19-otp-28/rebar3 compile)",
       "Bash(cd:*)",
       "Bash(PATH=\"/c/ProgramData/mingw64/mingw64/bin:$PATH\" elixir -e '\nApplication.ensure_all_started\\(:crc32cer\\)\ncrc = :crc32cer.nif\\(\"hello world\"\\)\nIO.puts\\(\"crc32cer: #{crc}\"\\)\n\n:snappyer.compress\\(\"hello world\"\\) |> case do\n  {:ok, compressed} -> IO.puts\\(\"snappyer: compressed #{byte_size\\(compressed\\)} bytes\"\\)\n  err -> IO.puts\\(\"snappyer error: #{inspect\\(err\\)}\"\\)\nend\n' -S mix 2>&1)",
-      "Bash(PATH=\"/c/ProgramData/mingw64/mingw64/bin:$PATH\" mix run -e '\ncrc = :crc32cer.nif\\(\"hello world\"\\)\nIO.puts\\(\"crc32cer: #{crc}\"\\)\n\n{:ok, compressed} = :snappyer.compress\\(\"hello world\"\\)\nIO.puts\\(\"snappyer: compressed #{byte_size\\(compressed\\)} bytes\"\\)\n\n{:ok, decompressed} = :snappyer.decompress\\(compressed\\)\nIO.puts\\(\"snappyer: decompressed to #{decompressed}\"\\)\n' 2>&1)"
+      "Bash(PATH=\"/c/ProgramData/mingw64/mingw64/bin:$PATH\" mix run -e '\ncrc = :crc32cer.nif\\(\"hello world\"\\)\nIO.puts\\(\"crc32cer: #{crc}\"\\)\n\n{:ok, compressed} = :snappyer.compress\\(\"hello world\"\\)\nIO.puts\\(\"snappyer: compressed #{byte_size\\(compressed\\)} bytes\"\\)\n\n{:ok, decompressed} = :snappyer.decompress\\(compressed\\)\nIO.puts\\(\"snappyer: decompressed to #{decompressed}\"\\)\n' 2>&1)",
+      "Bash(where cl.exe)",
+      "Bash(escript.exe c:/Users/Usuario/.mix/elixir/1-19-otp-28/rebar3 clean)",
+      "Bash(cmd.exe /c \"call \\\\\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\VC\\\\Auxiliary\\\\Build\\\\vcvars64.bat\\\\\" && cd C:\\\\src\\\\OpenSource\\\\snappyer && escript.exe c:\\\\Users\\\\Usuario\\\\.mix\\\\elixir\\\\1-19-otp-28\\\\rebar3 compile\" 2>&1)",
+      "Bash(cmd.exe /c \"C:\\\\\\\\src\\\\\\\\OpenSource\\\\\\\\snappyer\\\\\\\\test_msvc.bat\" 2>&1)",
+      "Bash(/c/src/OpenSource/snappyer/test_msvc.bat 2>&1)",
+      "Bash(/c/src/OpenSource/snappyer/test_msvc.bat)",
+      "Bash(escript.exe c:/src/OpenSource/snappyer/test_arch.escript 2>&1)",
+      "Bash(python -c \"import sys,json; [print\\(f[''''name'''']\\) for f in json.loads\\(sys.stdin.read\\(\\)\\) if ''''port'''' in f[''''name''''].lower\\(\\) or ''''win'''' in f[''''name''''].lower\\(\\)]\")",
+      "Bash(gh search:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(where rebar3:*)",
+      "Bash(cl.exe /?)",
+      "Bash(escript.exe c:/Users/Usuario/.mix/elixir/1-19-otp-28/rebar3 eunit)",
+      "Bash(tr ';' '\\\\n')",
+      "Bash(export PATH=\"/c/ProgramData/mingw64/mingw64/bin:$PATH\")",
+      "Bash(python -m json.tool)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:rebar3.org)",
+      "WebFetch(domain:erlang.mk)",
+      "Bash(cp /c/src/OpenSource/port_compiler/src/pc_port_env.erl /c/src/OpenSource/snappyer/_build/default/plugins/pc/src/pc_port_env.erl)",
+      "Bash(rm -f /c/src/OpenSource/snappyer/_build/default/plugins/pc/ebin/pc_port_env.beam)",
+      "Bash(cmd:*)"
     ]
   }
 }
